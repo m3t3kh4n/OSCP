@@ -7,6 +7,8 @@
 - [ ] Check custom JS
 - [ ] Check Headers
 - [ ] Check Responses
+- [ ] Crawl Website
+- [ ] Create MindMap tree
 - [ ] Wapplyzer
 - [ ] Nikto
 - [ ] Whatweb
