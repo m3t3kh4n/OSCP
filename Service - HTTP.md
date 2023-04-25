@@ -12,3 +12,5 @@
 - [ ] Wapplyzer
 - [ ] Nikto
 - [ ] Whatweb
+- [ ] Subdomains
+- [ ] Virtual Hosts
