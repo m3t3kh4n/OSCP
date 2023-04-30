@@ -8,3 +8,14 @@
 - `-S`: get share list
 - `-a`: all
 - `-r`: user enumeration via RID cycling
+
+# smbclient
+List SMB Shares:
+```
+smbclient -L //192.168.217.10/
+```
+
+Connect to SMB Share:
+```
+smbclient //192.168.217.10/name/
+```
