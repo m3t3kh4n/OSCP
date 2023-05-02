@@ -12,6 +12,9 @@ sudo hydra -L /usr/share/wordlists/dirb/others/names.txt -p "SuperS3cure1337#" r
 
 
 # FTP
+```
+ftp://
+```
 
 
 # HTTP GET
