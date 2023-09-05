@@ -9,6 +9,7 @@
 - [ ] Check Responses
 - [ ] Crawl Website
 - [ ] Create MindMap tree
+- [ ] Gobuster
 - [ ] Wapplyzer
 - [ ] Nikto
 - [ ] Whatweb
