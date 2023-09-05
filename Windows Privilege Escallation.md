@@ -1,5 +1,7 @@
 # Windows Privilege Escallation
 
+- Check if there is a port that is open only internally (`netstat –nao`)
+
 ## Binary Hijacking
 
 
