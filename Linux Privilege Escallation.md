@@ -8,3 +8,8 @@
 - [ ] SUID Bit
 - [ ] `sudo -l`
 - [ ] Cron Job
+- [ ] Get the usernames from `/home` start brute force for the users
+- [ ] If you come from web check `config.php`
+- [ ] Look for services like `mysql`
+- [ ] Look for internal ports
+- [ ] 
