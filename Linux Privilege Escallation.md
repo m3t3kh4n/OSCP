@@ -12,5 +12,5 @@
 - [ ] If you come from web check `config.php`
 - [ ] Look for services like `mysql`
 - [ ] Look for internal ports
-- [ ] Password Reuse
+- [ ] Password Reuse (get password from different resources like db, config files and reuse them)
 - [ ] Username and the password the same like `patrick:patrick`
