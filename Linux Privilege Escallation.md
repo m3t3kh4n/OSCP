@@ -15,4 +15,4 @@
 - [ ] Password Reuse (get password from different resources like db, config files and reuse them)
 - [ ] Username and the password the same like `patrick:patrick`
 - [ ] Create a key pair using `ssh-keygen` command and then change `id_rsa.pub` file to `authorized_keys` and add this file
-- [ ] Check group of the user: if it is fail2ban group [fail2ban PrivEsc](https://youssef-ichioui.medium.com/abusing-fail2ban-misconfiguration-to-escalate-privileges-on-linux-826ad0cdafb7)
+- [ ] Check group of the user: if it is fail2ban group [fail2ban PrivEsc](https://youssef-ichioui.medium.com/abusing-fail2ban-misconfiguration-to-escalate-privileges-on-linux-826ad0cdafb7) (PG-Practice Fail)
