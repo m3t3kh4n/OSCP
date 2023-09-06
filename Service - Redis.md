@@ -6,7 +6,7 @@ redis-cli -h 192.168.181.69 -p 6379
 ```
 
 
-## Redis 4.x / 5.x - Unauthenticated Code Execution
+## Redis 4.x / 5.x - Unauthenticated Code Execution [linux/redis/redis_replication_cmd_exec]
 
 ```
 git clone https://github.com/Ridter/redis-rce
