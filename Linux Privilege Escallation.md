@@ -14,3 +14,4 @@
 - [ ] Look for internal ports
 - [ ] Password Reuse (get password from different resources like db, config files and reuse them)
 - [ ] Username and the password the same like `patrick:patrick`
+- [ ] Create a key pair using `ssh-keygen` command and then change `id_rsa.pub` file to `authorized_keys` and add this file
