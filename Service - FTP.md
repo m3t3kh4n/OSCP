@@ -10,3 +10,8 @@ ftp -A anonymous@192.168.199.53
 # After logging in
 binary
 ```
+
+- Recursive download
+```
+wget -r ftp://user:pass@ip/
+```
