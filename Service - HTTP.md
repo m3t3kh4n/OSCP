@@ -19,3 +19,4 @@
 - [ ] Sometimes Burp Suite doesn't gives response, use `curl`, `wget`, `nc` in this case.
 - [ ] Check different methods for suspicious pages like `GET`, `POST`, `PUT`, `HEAD`, `OPTIONS`, `PATCH`, `DELETE`
 - [ ] If you find `LFI` check for `RFI` too (if there is a no chance to upload file anyway)
+- [ ] cewl passwords
