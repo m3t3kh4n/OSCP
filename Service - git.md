@@ -3,6 +3,11 @@
 ```
 git clone file:///git-server/ 
 ```
+- Set up Git credentials
+```
+git config --global user.name "dademola"
+git config --global user.email "dademola@hunit.(none)"
+```
 
 ---
 
