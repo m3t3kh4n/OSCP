@@ -16,3 +16,4 @@
 - [ ] Username and the password the same like `patrick:patrick`
 - [ ] Create a key pair using `ssh-keygen` command and then change `id_rsa.pub` file to `authorized_keys` and add this file
 - [ ] Check group of the user: if it is fail2ban group [fail2ban PrivEsc](https://youssef-ichioui.medium.com/abusing-fail2ban-misconfiguration-to-escalate-privileges-on-linux-826ad0cdafb7) (PG-Practice Fail)
+- [ ] Service **`find /etc -type f -writable 2> /dev/null`** https://al1z4deh.medium.com/proving-grounds-hetemit-8469d0a3f189
