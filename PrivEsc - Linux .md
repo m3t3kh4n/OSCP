@@ -15,5 +15,13 @@
 - [ ] Password Reuse (get password from different resources like db, config files and reuse them)
 - [ ] Username and the password the same like `patrick:patrick`
 - [ ] Create a key pair using `ssh-keygen` command and then change `id_rsa.pub` file to `authorized_keys` and add this file
-- [ ] Check group of the user: if it is fail2ban group [fail2ban PrivEsc](https://youssef-ichioui.medium.com/abusing-fail2ban-misconfiguration-to-escalate-privileges-on-linux-826ad0cdafb7) (PG-Practice Fail)
+- [ ] Check group of the user:
+  - [ ] if it is `fail2ban` group [fail2ban PrivEsc](https://youssef-ichioui.medium.com/abusing-fail2ban-misconfiguration-to-escalate-privileges-on-linux-826ad0cdafb7) (PG-Practice Fail)
+  - [ ] if it is `filter` group [filter PrivEsc](https://viperone.gitbook.io/pentest-everything/writeups/pg-practice/linux/postfish)
+  - [ ] if it is `docker` group [docker PrivSec](https://viperone.gitbook.io/pentest-everything/writeups/pg-practice/linux/peppo)
 - [ ] Service **`find /etc -type f -writable 2> /dev/null`** https://al1z4deh.medium.com/proving-grounds-hetemit-8469d0a3f189
+
+
+# Restricted Bash (RBASH)
+- [ ] Check available commands `echo $PATH`
+- [ ] 
