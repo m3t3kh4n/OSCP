@@ -12,7 +12,7 @@
 - [ ] Check Comments 
 - [ ] Gobuster
 - [ ] Wapplyzer
-- [ ] Nikto
+- [ ] Nikto -> `nikto -h http://ip`
 - [ ] Whatweb
 - [ ] Subdomains
 - [ ] Virtual Hosts
