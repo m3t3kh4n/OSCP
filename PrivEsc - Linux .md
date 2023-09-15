@@ -61,3 +61,7 @@ gcc -shared -fPIC -nostartfiles exploit.c -o exploit.so
 ```
 9. Put it to the target place
 10. Run the binary
+
+## Tar
+https://systemweakness.com/privilege-escalation-using-wildcard-injection-tar-wildcard-injection-a57bc81df61c
+
