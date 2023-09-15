@@ -5,7 +5,7 @@
 redis-cli -h 192.168.181.69 -p 6379
 ```
 
-- Configuration File Default Location
+- Configuration File Default Location (`requirepass`)
 ```
 /etc/redis/redis.conf
 ```
