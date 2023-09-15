@@ -8,6 +8,7 @@
 - [ ] SUID Bit
 - [ ] `sudo -l`
 - [ ] Cron Job
+  - [ ] There may be missing library for binary file we can write create and write it [HINT](https://www.youtube.com/watch?v=LlzpyGcA-ak&ab_channel=Tech69)
 - [ ] Get the usernames from `/home` start brute force for the users
 - [ ] If you come from web check `config.php`
 - [ ] Look for services like `mysql`
