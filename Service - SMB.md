@@ -15,7 +15,17 @@ List SMB Shares:
 smbclient -L //192.168.217.10/
 ```
 
+List SMB Shares (NULL):
+```
+smbclient -L //192.168.217.10/ -U ''
+```
+
 Connect to SMB Share:
 ```
 smbclient //192.168.217.10/name/
+```
+
+Connect to SMB Share (NULL):
+```
+smbclient //192.168.217.10/name/ -U ''
 ```
