@@ -1,7 +1,7 @@
 # Wordpress
 
 ## wpscan
-
+- **IF THERE IS NOT EVEN VULNERABILITY IN PLUGINS, GET and SERACH THEIR NAMES MANUALLY ON GOOGLE**
 ```
 wpscan --url <url> --enumerate ap --api-token <api-token>
 ```
