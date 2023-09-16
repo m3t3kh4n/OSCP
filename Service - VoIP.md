@@ -5,3 +5,6 @@
 
 # Tool set
 https://github.com/linuxmaniac/sippts
+
+# Sound Processing (`sox`)
+https://github.com/chirlu/sox
