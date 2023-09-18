@@ -21,3 +21,8 @@ wget -r ftp://user:pass@ip/
 ```
 hydra -C <the file given above> <ip> ftp
 ```
+
+# SSL Connection
+```
+ftp-ssl -z secure -z verify=0 -p <ip>
+```
