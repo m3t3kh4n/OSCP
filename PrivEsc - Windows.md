@@ -1,6 +1,8 @@
 # Windows Privilege Escallation
 - [ ] `whoami /priv` -> SeImpersonatePrivilege
+  - [ ] [PrintSpoofer](https://github.com/itm4n/PrintSpoofer)
 
+---
 
 - Check if there is a port that is open only internally (`netstat –nao`)
 - Port forward if there is a new port internally and start checking it from zero
