@@ -26,3 +26,6 @@ hydra -C <the file given above> <ip> ftp
 ```
 ftp-ssl -z secure -z verify=0 -p <ip>
 ```
+```
+ftp-ssl -z secure -z verify=0 -z cipher="$(openssl ciphers -tls1)" -p <ip>
+```
