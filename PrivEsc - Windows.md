@@ -5,8 +5,10 @@
 - [ ] Local Groups: `net localgroup`
 - [ ] Network interfaces: `ipconfig`
 - [ ] Open Ports: `netstat -ano`
-- [ ] `whoami /priv` -> SeImpersonatePrivilege
-  - [ ] [PrintSpoofer](https://github.com/itm4n/PrintSpoofer)
+- [ ] `whoami /priv` ->
+  - [ ] SeImpersonatePrivilege
+    - [ ] [PrintSpoofer](https://github.com/itm4n/PrintSpoofer)
+  - [ ] `AlwaysInstallElevated`
 - [ ] Check file permissions: `icacls "\path\to\file"`
 
 # SeImpersonatePrivilege
