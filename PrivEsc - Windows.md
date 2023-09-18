@@ -9,6 +9,12 @@
   - [ ] SeImpersonatePrivilege
     - [ ] [PrintSpoofer](https://github.com/itm4n/PrintSpoofer)
   - [ ] `AlwaysInstallElevated`
+```
+#https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#alwaysinstallelevated
+
+reg query HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
+```
 - [ ] Check file permissions: `icacls "\path\to\file"`
 
 # SeImpersonatePrivilege
