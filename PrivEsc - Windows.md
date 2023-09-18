@@ -1,4 +1,5 @@
 # Windows Privilege Escallation
+- [ ] `whoami /priv` -> SeImpersonatePrivilege
 
 
 - Check if there is a port that is open only internally (`netstat –nao`)
