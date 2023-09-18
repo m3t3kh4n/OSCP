@@ -1,4 +1,10 @@
 # Windows Privilege Escallation
+- [ ] OS and Kernel information: `systeminfo`
+- [ ] Current User: `whoami /all`
+- [ ] Local Users: `net users`
+- [ ] Local Groups: `net localgroup`
+- [ ] Network interfaces: `ipconfig`
+- [ ] Open Ports: `netstat -ano`
 - [ ] `whoami /priv` -> SeImpersonatePrivilege
   - [ ] [PrintSpoofer](https://github.com/itm4n/PrintSpoofer)
 
