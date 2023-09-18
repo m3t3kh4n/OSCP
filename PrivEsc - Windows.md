@@ -1,6 +1,7 @@
 # Windows Privilege Escallation
 - [ ] OS and Kernel information: `systeminfo`
 - [ ] Current User: `whoami /all`
+  - [ ] [NT AUTHORITY\LOCAL SERVICE](https://itm4n.github.io/localservice-privileges/?ref=benheater.com)
 - [ ] Local Users: `net users`
 - [ ] Local Groups: `net localgroup`
 - [ ] Network interfaces: `ipconfig`
