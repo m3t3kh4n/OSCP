@@ -8,6 +8,9 @@
 - [ ] `whoami /priv` -> SeImpersonatePrivilege
   - [ ] [PrintSpoofer](https://github.com/itm4n/PrintSpoofer)
 
+# SeImpersonatePrivilege
+- [GodPotato](https://github.com/BeichenDream/GodPotato)
+
 ---
 
 - Check if there is a port that is open only internally (`netstat –nao`)
