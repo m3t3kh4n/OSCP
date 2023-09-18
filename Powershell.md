@@ -24,7 +24,7 @@ Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope CurrentUser
 Invoke-WebRequest -URI $URL -OutFile $Path
 ```
 ```
-(New-Object System.Net.WebClient).DownloadFile ($URL, $Path)
+(New-Object System.Net.WebClient).DownloadFile($URL, $Path)
 ```
 ```
 Start-BitsTransfer -Source $URL -Destination $Path
