@@ -22,3 +22,13 @@ tag SELECT <INBOX>
 #FETCH the rest of the messages, and their headers, with the following command.
 tag fetch 2:5 BODY[HEADER] BODY[1]
 ```
+
+# Sending Email Kali Terminal
+```
+sendemail -f 'jonas@localhost' \
+                       -t 'mailadmin@localhost' \
+                       -s 192.168.120.132:25 \
+                       -u 'Your spreadsheet' \
+                       -m 'Here is your requested spreadsheet' \
+                       -a bomb.ods
+```
