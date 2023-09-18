@@ -7,6 +7,7 @@
 - [ ] Open Ports: `netstat -ano`
 - [ ] `whoami /priv` -> SeImpersonatePrivilege
   - [ ] [PrintSpoofer](https://github.com/itm4n/PrintSpoofer)
+- [ ] Check file permissions: `icacls "\path\to\file"`
 
 # SeImpersonatePrivilege
 - [GodPotato](https://github.com/BeichenDream/GodPotato)
