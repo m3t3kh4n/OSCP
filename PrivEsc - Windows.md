@@ -7,7 +7,7 @@
 - [ ] Open Ports: `netstat -ano`
 - [ ] `whoami /priv` ->
   - [ ] SeImpersonatePrivilege
-    - [ ] [PrintSpoofer](https://github.com/itm4n/PrintSpoofer)
+    - [ ] [PrintSpoofer](https://github.com/itm4n/PrintSpoofer): SeImpersonatePrivilege + Microsoft Windows Server 2019 Standard = PrintSpoofer64.exe
   - [ ] `AlwaysInstallElevated`
 ```
 #https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#alwaysinstallelevated
