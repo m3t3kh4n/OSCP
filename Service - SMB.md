@@ -43,3 +43,17 @@ enumdomusers
 ```
 enumdomgroups
 ```
+
+# SMB Recursive download
+```
+prompt off
+recurse
+mget *
+```
+
+# `smbmap`
+```
+Recursively listing all directories and subdirectories
+smbmap -u null -p null -H <IP> -s <Share$> -R
+```
+
