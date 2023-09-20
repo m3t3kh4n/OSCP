@@ -10,6 +10,7 @@
   - [ ] SeImpersonatePrivilege
     - [ ] [PrintSpoofer](https://github.com/itm4n/PrintSpoofer): SeImpersonatePrivilege + Microsoft Windows Server 2019 Standard = PrintSpoofer64.exe
   - [ ] `AlwaysInstallElevated`
+- [ ] Check installed softwares: `c:\Program Files (x86)`
 ```
 #https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#alwaysinstallelevated
 
