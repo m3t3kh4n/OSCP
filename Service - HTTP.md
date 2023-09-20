@@ -26,6 +26,12 @@
 - [ ] Check directory with the name of the box like `/Name`.
 - [ ] If there are users, photos and descriptions under them, grab usernames (generally check for different name or description or photo), also descriptions can be passwords.
 
+# `gobuster`
+- Using Basic Auth
+```
+gobuster dir -u http://192.168.85.46:242/ -w /usr/share/dirb/wordlists/common.txt -k -x .txt,.php --threads 50 -U offsec -P elite
+```
+
 ## Top
 
 ```
