@@ -32,6 +32,12 @@ wmic service get name,displayname,pathname,startmode |findstr /i "auto"
 #REBOOT
 shutdown /r
 ```
+- [ ] Look for passwords in registries
+```
+req query HKLM /f pass /t REG_SZ /s
+```
+
+---
 
 # SeImpersonatePrivilege
 - [GodPotato](https://github.com/BeichenDream/GodPotato)
