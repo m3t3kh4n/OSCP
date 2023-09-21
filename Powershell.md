@@ -1,5 +1,7 @@
 # PowerShell
-
+```
+powershell -ep bypass
+```
 ## Execution Policy
 - Get current Execution Policy
 ```
