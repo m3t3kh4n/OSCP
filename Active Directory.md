@@ -33,3 +33,24 @@ $DN = ([adsi]'').distinguishedName
 $LDAP = "LDAP://$PDC/$DN"
 $LDAP
 ```
+- Getting `DirectoryEntry`
+```
+$direntry = New-Object System.DirectoryServices.DirectoryEntry($LDAP)
+```
+- Getting `DirectorySearcher`
+```
+$dirsearcher = New-Object System.DirectoryServices.DirectorySearcher($direntry)
+$dirsearcher.FindAll()
+```
+- Enumerate all the users in DC
+```
+$PDC = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().PdcRoleOwner.Name
+$DN = ([adsi]'').distinguishedName 
+$LDAP = "LDAP://$PDC/$DN"
+
+$direntry = New-Object System.DirectoryServices.DirectoryEntry($LDAP)
+
+$dirsearcher = New-Object System.DirectoryServices.DirectorySearcher($direntry)
+$dirsearcher.filter="samAccountType=805306368"
+$dirsearcher.FindAll()
+```
