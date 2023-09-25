@@ -4,7 +4,7 @@
 ```
 net user /domain
 ```
-- Get specific user datils in the domain
+- Get specific user details in the domain
 ```
 net user <username> /domain
 ```
