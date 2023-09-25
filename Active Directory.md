@@ -26,3 +26,10 @@ PowerShell cmdlets like `Get-ADUser` work well but they are only installed by de
 ```
 ([adsi]'').distinguishedName
 ```
+- Getting LDAP URL. Example: `LDAP://DC1.corp.com/DC=corp,DC=com`
+```
+$PDC = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().PdcRoleOwner.Name
+$DN = ([adsi]'').distinguishedName 
+$LDAP = "LDAP://$PDC/$DN"
+$LDAP
+```
