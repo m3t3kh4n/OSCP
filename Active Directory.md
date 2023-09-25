@@ -83,3 +83,7 @@ Get-NetGroup | select cn
 Get-NetGroup "Sales Department" | select member
 ```
 - https://powersploit.readthedocs.io/en/latest/Recon/
+- Get computer details
+```
+Get-NetComputer
+```
