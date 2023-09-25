@@ -54,3 +54,32 @@ $dirsearcher = New-Object System.DirectoryServices.DirectorySearcher($direntry)
 $dirsearcher.filter="samAccountType=805306368"
 $dirsearcher.FindAll()
 ```
+## [PoverView](https://github.com/PowerShellMafia/PowerSploit/blob/master/Recon/PowerView.ps1)
+- Import the module
+```
+Import-Module .\PowerView.ps1
+```
+- Getting the DC information
+```
+Get-NetDomain
+```
+- Get User details
+```
+Get-NetUser
+```
+It is possible to filter it too:
+```
+Get-NetUser | select cn
+```
+```
+Get-NetUser | select cn,pwdlastset,lastlogon
+```
+- Getting Group details
+```
+Get-NetGroup | select cn
+```
+- Getting group members
+```
+Get-NetGroup "Sales Department" | select member
+```
+- https://powersploit.readthedocs.io/en/latest/Recon/
