@@ -87,3 +87,15 @@ Get-NetGroup "Sales Department" | select member
 ```
 Get-NetComputer
 ```
+- Scanning the network in an attempt to determine if our current user has administrative permissions on any computers in the domain
+```
+Find-LocalAdminAccess
+```
+- Which user is logged in to which computer
+```
+Get-NetSession -ComputerName <computer-name> -Verbose
+```
+
+
+
+
