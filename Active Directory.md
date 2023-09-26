@@ -165,8 +165,13 @@ Import-Module .\Sharphound.ps1
 Invoke-BloodHound -CollectionMethod All -OutputDirectory C:\Users\stephanie\Desktop\ -OutputPrefix "corp audit"
 ```
 Now transfer `.zip` file to the Kali. `.bin` file is a cache file and it is not required. It is okay to delete it.
-
-## BloodHound
-
-
+## [BloodHound](https://github.com/BloodHoundAD/BloodHound)
+- Start Neo4j db
+```
+sudo neo4j start
+```
+- Initialize Neo4j (neo4j:neo4j)
+```
+http://localhost:7474
+```
 
