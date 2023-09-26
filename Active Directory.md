@@ -16,6 +16,10 @@ net group /domain
 ```
 net group "<group-name>" /domain
 ```
+- We can obtain the IP address and port number of applications running on servers integrated with AD by simply enumerating all Service Principal Names in the domain. Since the information is registered and stored in AD, it is present on the domain controller. To obtain the data, we will again query the DC, this time searching for specific SPNs. (SECOND METHOD IS IN POWERVIEW)
+```
+setspn -L <domain-user-name>
+```
 ## PowerShell and .NET Classes
 PowerShell cmdlets like `Get-ADUser` work well but they are only installed by default on domain controllers as part of the Remote Server Administration Tools (RSAT).
 - Getting the required hostname for the PDC - `PdcRoleOwner` (PS)
@@ -95,6 +99,35 @@ Find-LocalAdminAccess
 ```
 Get-NetSession -ComputerName <computer-name> -Verbose
 ```
+- Enumerating Service Principal Names 
+```
+Get-NetUser -SPN | select samaccountname,serviceprincipalname
+```
+### Enumerating Object Permissions
+Juicy Permissions:
+```
+GenericAll: Full permissions on object
+GenericWrite: Edit certain attributes on the object
+WriteOwner: Change ownership of the object
+WriteDACL: Edit ACE's applied to object
+AllExtendedRights: Change password, reset password, etc.
+ForceChangePassword: Password change for object
+Self (Self-Membership): Add ourselves to for example a group
+```
+- Enumerate the user's ACE (Access Control Entry). The main points are `ObjectSID`, `ActiveDirectoryRights`, `SecurityIdentifier`.
+```
+Get-ObjectAcl -Identity <username>
+```
+- Conver SID to Name
+```
+Convert-SidToName S-1-5-21-1987370270-658905905-1781884369-1104
+```
+- Check if any users have GenericAll permissions
+```
+Get-ObjectAcl -Identity "Management Department" | ? {$_.ActiveDirectoryRights -eq "GenericAll"} | select SecurityIdentifier,ActiveDirectoryRights
+```
+### Enumerating Domain Shares
+
 ## PsLoggedOn
 - To find logged on users on hosts
 ```
