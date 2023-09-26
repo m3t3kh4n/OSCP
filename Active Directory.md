@@ -126,6 +126,10 @@ Convert-SidToName S-1-5-21-1987370270-658905905-1781884369-1104
 ```
 Get-ObjectAcl -Identity "Management Department" | ? {$_.ActiveDirectoryRights -eq "GenericAll"} | select SecurityIdentifier,ActiveDirectoryRights
 ```
+- Find interesting ACLs
+```
+Find-InterestingDomainAcl | select identityreferencename,activedirectoryrights,acetype,objectdn | ?{$_.IdentityReferenceName -NotContains "DnsAdmins"} | ft
+```
 ### Enumerating Domain Shares
 - Finding shares in the domain
 ```
