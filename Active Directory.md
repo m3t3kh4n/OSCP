@@ -153,6 +153,20 @@ gpp-decrypt "+bsY0V3d4/KgX3VJdO/vyepPfAN1zMFTiQDApgR92JE"
 ```
 .\PsLoggedon.exe \\files04
 ```
+---
+## [SharpHound](https://github.com/BloodHoundAD/SharpHound)
+Data Collector for BloodHound
+- Import the script
+```
+Import-Module .\Sharphound.ps1
+```
+- we'll attempt to gather All data, which will perform all collection methods except for local group policies.
+```
+Invoke-BloodHound -CollectionMethod All -OutputDirectory C:\Users\stephanie\Desktop\ -OutputPrefix "corp audit"
+```
+Now transfer `.zip` file to the Kali. `.bin` file is a cache file and it is not required. It is okay to delete it.
+
+## BloodHound
 
 
 
