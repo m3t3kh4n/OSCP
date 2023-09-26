@@ -96,8 +96,10 @@ Find-LocalAdminAccess
 Get-NetSession -ComputerName <computer-name> -Verbose
 ```
 ## PsLoggedOn
-
-
+- To find logged on users on hosts
+```
+.\PsLoggedon.exe \\files04
+```
 
 
 
