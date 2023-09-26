@@ -95,6 +95,8 @@ Find-LocalAdminAccess
 ```
 Get-NetSession -ComputerName <computer-name> -Verbose
 ```
+## PsLoggedOn
+
 
 
 
