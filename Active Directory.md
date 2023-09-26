@@ -277,6 +277,8 @@ We'll need to provide a username and password to do this. If the credentials are
 If you receive a network error, make sure that the encoding of usernames.txt is ANSI. You can use Notepad's Save As functionality to change the encoding.
 ## AS-REP Roasting
 The first step of the authentication process via Kerberos is to send an `AS-REQ`. Based on this request, the domain controller can validate if the authentication is successful. If it is, the domain controller replies with an AS-REP containing the session key and TGT. This step is also commonly referred to as Kerberos preauthentication. Without Kerberos preauthentication in place, an attacker could send an AS-REQ to the domain controller on behalf of any AD user. After obtaining the AS-REP from the domain controller, the attacker could perform an offline password attack against the encrypted part of the response. This attack is known as AS-REP Roasting.
+### impacket-GetNPUsers
+From Kali:
 ```
 impacket-GetNPUsers -dc-ip <dc-ip-addrress>  -request -outputfile <hash-output-filename> <domain>/<user>
 ```
@@ -284,8 +286,13 @@ By default, the AD user account option Do not require Kerberos preauthentication
 ```
 sudo hashcat -m 18200 hashes.asreproast /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
 ```
-
-
+### Rubeus
+From Windows:
+```
+.\Rubeus.exe asreproast /nowrap
+```
+**To identify users with the enabled AD user account option `Do not require Kerberos preauthentication`, we can use PowerView's `Get-DomainUser` function with the option `-PreauthNotRequired` on Windows. On Kali, we can use `impacket-GetNPUsers` as shown in listing 14 without the `-request` and `-outputfile` options.**
+## Kerberoasting
 
 
 
