@@ -302,18 +302,64 @@ We know that when a user wants to access a resource hosted by a Service Principa
 ```
 impacket-GetUserSPNs -request -dc-ip 192.168.50.70 corp.com/pete
 ```
-If `impacket-GetUserSPNs` throws the error "KRB_AP_ERR_SKEW(Clock skew too great)," we need to synchronize the time of the Kali machine with the domain controller. We can use ntpdate or rdate to do so.
+If `impacket-GetUserSPNs` throws the error "`KRB_AP_ERR_SKEW(Clock skew too great)`," we need to synchronize the time of the Kali machine with the domain controller. We can use ntpdate or rdate to do so.
 - Crack Hash:
 ```
 sudo hashcat -m 13100 hashes.kerberoast /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
 ```
 Let's assume that we are performing an assessment and notice that we have `GenericWrite` or `GenericAll` permissions on another AD user account. As stated before, we could reset the user's password but this may raise suspicion. However, we could also set an SPN for the user, kerberoast the account, and crack the password hash in an attack named targeted Kerberoasting. We'll note that in an assessment, we should delete the SPN once we've obtained the hash to avoid adding any potential vulnerabilities to the client's infrastructure.
+## Silver Tickets
+Remembering the inner workings of the Kerberos authentication, the application on the server executing in the context of the service account checks the user's permissions from the group memberships included in the service ticket. However, the user and group permissions in the service ticket are not verified by the application in a majority of environments. In this case, the application blindly trusts the integrity of the service ticket since it is encrypted with a password hash that is, in theory, only known to the service account and the domain controller. Privileged Account Certificate (PAC)1 validation2 is an optional verification process between the SPN application and the domain controller. If this is enabled, the user authenticating to the service and its privileges are validated by the domain controller. Fortunately for this attack technique, service applications rarely perform PAC validation. As an example, if we authenticate against an IIS server that is executing in the context of the service account iis_service, the IIS application will determine which permissions we have on the IIS server depending on the group memberships present in the service ticket. With the service account password or its associated NTLM hash at hand, we can forge our own service ticket to access the target resource (in our example, the IIS application) with any permissions we desire. This custom-created ticket is known as a silver ticket3 and if the service principal name is used on multiple servers, the silver ticket can be leveraged against them all.
 
+In general, we need to collect the following three pieces of information to create a silver ticket:
+1. SPN password hash
+2. Domain SID
+3. Target SPN
 
+Since we are a local Administrator on this machine where `iis_service` has an established session, we can use Mimikatz to retrieve the **SPN password hash** (NTLM hash of iis_service), which is the first piece of information we need to create a silver ticket. Let's start PowerShell as Administrator and launch Mimikatz. As we already learned, we can use `privilege::debug` and `sekurlsa::logonpasswords` to extract cached AD credentials.
+- Get NTLM hash of the service account:
+```
+privilege::debug
+```
+```
+sekurlsa::logonpasswords
+```
+The NTLM hash of the service account is the first piece of information we need to create the silver ticket.
 
+- Get the domain SID
+```
+whoami /user
+```
+Now, let's obtain the domain SID, the second piece of information we need. We can enter whoami /user to get the SID of the current user. Alternatively, we could also retrieve the SID of the SPN user account from the output of Mimikatz, since the domain user accounts exist in the same domain.
+```
+USER INFORMATION
+----------------
 
+User Name SID
+========= =============================================
+corp\jeff S-1-5-21-1987370270-658905905-1781884369-1105
+```
+This part: **`S-1-5-21-1987370270-658905905-1781884369`**.
+As covered in the Windows Privilege Escalation Module, the SID consists of several parts. Since we're only interested in the Domain SID, we'll omit the RID of the user.
 
+- The last list item is the target SPN. For this example, we'll target the HTTP SPN resource on WEB04 (HTTP/web04.corp.com:80) because we want to access the web page running on IIS.
 
+Now that we have collected all three pieces of information, we can build the command to create a silver ticket with Mimikatz. We can create the forged service ticket with the `kerberos::golden` module. This module provides the capabilities for creating golden and silver tickets alike. We'll explore the concept of golden tickets in the Module Lateral Movement in Active Directory.
+```
+kerberos::golden /sid:S-1-5-21-1987370270-658905905-1781884369 /domain:corp.com /ptt /target:web04.corp.com /service:http /rc4:4d28cf5252d39971419580a51484ca09 /user:jeffadmin
+```
+We need to provide the domain SID (/sid:), domain name (/domain:), and the target where the SPN runs (/target:). We also need to include the SPN protocol (/service:), NTLM hash of the SPN (/rc4:), and the /ptt option, which allows us to inject the forged ticket into the memory of the machine we execute the command on.
+
+From the perspective of the IIS application, the current user will be both the built-in local administrator ( Relative Id: 500 ) and a member of several highly-privileged groups, including the Domain Admins group ( Relative Id: 512 ) as highlighted above.
+
+- This means we should have the ticket ready to use in memory. We can confirm this with klist.
+```
+klist
+```
+
+Once we have access to the password hash of the SPN, a machine account, or user, we can forge the related service tickets for any users and permissions. This is a great way of accessing SPNs in later phases of a penetration test, as we need privileged access in most situations to retrieve the password hash of the SPN.
+
+## Domain Controller Synchronization
 
 
 
