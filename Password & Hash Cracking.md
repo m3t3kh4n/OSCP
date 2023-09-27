@@ -40,5 +40,12 @@ cewl --lowercase http://192.168.233.61:8081/ | grep -v CeWL  >> custom-wordlist.
 ```
 sudo hashcat -m 18200 hashes.asreproast /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
 ```
+- Add `1`,`!`,`1!`,`!1`:
+```
+$1
+$!
+$1$!
+$!$1
+```
 
 
