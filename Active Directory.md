@@ -379,9 +379,20 @@ hashcat -m 1000 hashes.dcsync /usr/share/wordlists/rockyou.txt -r /usr/share/has
 ```
 ---
 # Lateral Movement
+## WMI and WinRM
 
+## PsExec
 
+## Pass the Hash
 
+## Overpass the Hash
+
+## Pass the Ticket
+
+## DCOM
+
+---
+# Persistence
 
 
 
