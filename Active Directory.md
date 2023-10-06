@@ -604,9 +604,19 @@ PsExec.exe \\dc1 cmd.exe
 psexec.exe \\192.168.50.70 cmd.exe
 ```
 ## Shadow Copies
-
-
-
-
-
-
+- To start off, we'll connect as the jeffadmin domain admin user to the DC1 domain controller and launch from an elevated prompt the vshadow utility with -nw options to disable writers,5 which speeds up backup creation and include the -p option to store the copy on disk.
+```
+vshadow.exe -nw -p  C:
+``` 
+- Once the snapshot has been taken successfully, we should take note of the shadow copy device name. We'll now copy the whole AD Database from the shadow copy to the C: drive root folder by specifying the shadow copy device name and append the full ntds.dit path.
+```
+copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\windows\ntds\ntds.dit c:\ntds.dit.bak
+```
+- As a last ingredient, to correctly extract the content of ntds.dit, we need to save the SYSTEM hive from the Windows registry. We can accomplish this with the reg utility and the save argument.
+```
+reg.exe save hklm\system c:\system.bak
+```
+- Once the two .bak files are moved to our Kali machine, we can continue extracting the credential materials with the secretsdump tool from the impacket suite. We'll supply the ntds database and the system hive via -ntds and -system, respectively along with the LOCAL keyword to parse the files locally.
+```
+impacket-secretsdump -ntds ntds.dit.bak -system system.bak LOCAL
+```
