@@ -481,6 +481,34 @@ impacket-psexec -hashes 00000000000000000000000000000000:e460605a9dbd55097c6cf77
 /usr/bin/impacket-wmiexec -hashes :2892D26CDF84D7A70E2EB3B9F05C425E Administrator@192.168.50.73
 ```
 ## Overpass the Hash
+- https://www.blackhat.com/docs/us-14/materials/us-14-Duckwall-Abusing-Microsoft-Kerberos-Sorry-You-Guys-Don't-Get-It-wp.pdf
+- With overpass the hash, we can "over" abuse an NTLM user hash to gain a full Kerberos Ticket Granting Ticket (TGT). Then we can use the TGT to obtain a Ticket Granting Service (TGS).
+- The essence of the overpass the hash lateral movement technique is to turn the NTLM hash into a Kerberos ticket and avoid the use of NTLM authentication. A simple way to do this is with the sekurlsa::pth command from Mimikatz.
+- The command requires a few arguments and creates a new PowerShell process in the context of jen. This new PowerShell prompt will allow us to obtain Kerberos tickets without performing NTLM authentication over the network, making this attack different than a traditional pass-the-hash.
+```
+sekurlsa::pth /user:jen /domain:corp.com /ntlm:369def79d8372408bf6e93364cc93075 /run:powershell
+```
+- At this point, running the whoami command on the newly created PowerShell session would show jeff's identity instead of jen. While this could be confusing, this is the intended behavior of the whoami utility which only checks the current process's token and it does not inspect any imported kerberos tickets
+- Let's list the cached Kerberos tickets with klist.
+```
+klist
+```
+- No Kerberos tickets have been cached, but this is expected since jen has not yet performed an interactive login. Let's generate a TGT by authenticating to a network share on the files04 server with net use.
+```
+net use \\files04
+```
+```
+klist
+```
+We have now converted our NTLM hash into a Kerberos TGT, allowing us to use any tools that rely on Kerberos authentication (as opposed to NTLM) such as the official PsExec application from Microsoft.
+
+PsExec can run a command remotely but does not accept password hashes. Since we have generated Kerberos tickets and operate in the context of jen in the PowerShell session, we may reuse the TGT to obtain code execution on the files04 host. Let's try that now, running .\PsExec.exe to launch cmd remotely on the \\files04 machine as jen.
+```
+cd C:\tools\SysinternalsSuite\
+.\PsExec.exe \\files04 cmd
+```
+
+**As evidenced by the output, we have successfully reused the Kerberos TGT to launch a command shell on the files04 server. Excellent! We have successfully upgraded a cached NTLM password hash to a Kerberos TGT to gain remote code execution on behalf of another user.**
 
 ## Pass the Ticket
 
