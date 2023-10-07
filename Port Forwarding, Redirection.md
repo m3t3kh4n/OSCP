@@ -7,6 +7,7 @@
 - `-R` [For this check ERP PG-Practice walkthrough]
 
 # Examples
+![image](https://github.com/m3t3kh4n/OSCP/assets/112255413/9b98418c-66e3-4bfa-a220-0ecd3db02387)
 ```
 ssh -N -L 0.0.0.0:4455:172.16.50.217:445 database_admin@10.4.50.215
 ```
