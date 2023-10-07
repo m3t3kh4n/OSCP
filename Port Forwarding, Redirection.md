@@ -10,3 +10,4 @@
 ```
 ssh -N -L 0.0.0.0:4455:172.16.50.217:445 database_admin@10.4.50.215
 ```
+- `-N`: avoid opening shell
