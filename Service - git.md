@@ -21,3 +21,20 @@ GIT_SSH_COMMAND='ssh -i ~/id_rsa -p 43022' git push origin master
 ---
 
 https://medium.com/@blueclps080984/proving-grounds-hunit-intermediate-linux-box-walkthrough-a-journey-to-offensive-security-36081fc196d
+
+---
+
+# git-dumper
+```
+git-dumper <URL> .
+```
+
+Getting commits
+```
+git log > commits.txt; cat commits.txt | grep commit
+```
+
+File changes:
+```
+git log -p <last-commit>
+```
