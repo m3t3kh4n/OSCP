@@ -3,6 +3,7 @@
 - You can add `certutil.exe` command without the name of the output file.
 - You can add `certutil.exe` URL without single/double quotes.
 - If you cannot run executables like whoami, systeminfo; then go to `C:\Windows\system32` folder to run this commands, because they may not be on our `PATH`.
+- Generally there are `IIS` on Windows. If there is an Apache web server. It may be initial foothold. Generally, it runs either `XAMPP` or `WAMPP`. The default locations are `C:\inetpub\htdocs` or `C:\xampp\htdocs`.
 
 # File Transfer
 **Note: Netcat doesn't know how to handle a staged payload. To get a functional interactive command prompt, we can use Metasploit's `multi/handler` module, which works for the majority of staged, non-staged, and more advanced payloads.**
