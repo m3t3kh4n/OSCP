@@ -57,3 +57,7 @@ Recursively listing all directories and subdirectories
 smbmap -u null -p null -H <IP> -s <Share$> -R
 ```
 
+# `crackmapexec`
+```
+crackmapexec smb <IP>
+```
