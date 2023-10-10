@@ -28,6 +28,7 @@
 - [ ] If there are users, photos and descriptions under them, grab usernames (generally check for different name or description or photo), also descriptions can be passwords.
 - [ ] XSS for stealing Administrator cookies
 - [ ] CSRF for executing some commands on behalf of Administrator
+- [ ] See URL place try \\<your-ip>\random share for NTLM Relay and LLMNR Poisoning
 
 # `gobuster`
 - Using Basic Auth
