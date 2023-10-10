@@ -25,6 +25,8 @@
 - [ ] Check `phpinfo.php`. If it is available, then there is a chance to look for SQL Injection. By this way you can see the location of www from `phpinfo.php` file and you can write into while to the defined location and get webshell [CHECK](https://github.com/m3t3kh4n/OSCP/blob/main/SQL%20Injection.md#into-outfile-method-payloadallthethings).
 - [ ] Check directory with the name of the box like `/Name`.
 - [ ] If there are users, photos and descriptions under them, grab usernames (generally check for different name or description or photo), also descriptions can be passwords.
+- [ ] XSS for stealing Administrator cookies
+- [ ] CSRF for executing some commands on behalf of Administrator
 
 # `gobuster`
 - Using Basic Auth
