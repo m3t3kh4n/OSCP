@@ -43,3 +43,13 @@ robots.txt
 api/
 .git
 ```
+
+# SQL Injection
+1. Single quote check
+2. `ORDER BY`
+3. `UNION`
+4. `user()`
+5. `system_user()`
+6. `LOAD_FILE('c:/windows32/system32/license.rtf')`
+7. xp cmd (MS SQL)
+
