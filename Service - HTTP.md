@@ -9,6 +9,7 @@
 - [ ] Check Responses
 - [ ] Crawl Website
 - [ ] Create MindMap tree
+- [ ] get hostname from SSL certificate
 - [ ] Check Comments 
 - [ ] Gobuster
 - [ ] Wapplyzer
