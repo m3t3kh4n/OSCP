@@ -35,6 +35,7 @@
   - [ ] Command Injection
   - [ ] `impacket-smbserver sharename $(pwd) -smb2support`
 - [ ] Download images and `exiftool` to look for juicy information like username
+- [ ] Get emails for username
 
 # `gobuster`
 - Using Basic Auth
