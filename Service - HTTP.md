@@ -34,7 +34,7 @@
   - [ ] JS `src` as a share
   - [ ] Command Injection
   - [ ] `impacket-smbserver sharename $(pwd) -smb2support`
-  - [ ] 
+- [ ] Download images and `exiftool` to look for juicy information like username
 
 # `gobuster`
 - Using Basic Auth
