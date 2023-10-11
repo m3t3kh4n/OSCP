@@ -62,6 +62,8 @@ feroxbuster -u <URL> -k -x php -o output.file
 ```
 ffuf -k -u https://watch.streamio.htb/search.php -d "q=FUZZ" -w /usr/share/seclists/Fuzzing/special-chars.txt -H "Content-Type: application/x-www-form-encoded"
 ```
+- `-fl`: Filter Line
+- Also sometimes use URL encode function to encode the payloads
 
 # SQL Injection
 1. Single quote check
