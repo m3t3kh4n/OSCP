@@ -190,6 +190,7 @@ bloodhound
 1. Connet neo4j (neo4j:Neo4j)
 2. Upload Data
 3. Analyze
+> **That is effective to Right Click and Mark Owned Principles. After that, you can check the Shortest Path.**
 Note: This plays directly into the second Shortest Path we'd like to show for this Module, namely the Shortest Paths to Domain Admins from Owned Principals. If we run this query against corp.com without configuring BloodHound, we receive a "NO DATA RETURNED FROM QUERY" message. However, the Owned Principals plays a big role here, and refers to the objects we are currently in control of in the domain. In order to analyze, we can mark any object we'd like as owned in BloodHound, even if we haven't obtained access to them. Sometimes it is a good idea to think in the lines of "what if" when it comes to AD assessments. In this case however, we will leave the imagination on the side and focus on the objects we in fact have control over. In order for us to obtain an owned principal in BloodHound, we will run a search (top left), right click the object that shows in the middle of the screen, and click Mark User as Owned. A principal marked as owned is shown in BloodHound with a skull icon next to the node itself. We'll repeat the process for CLIENT75 as well, however in this case we click Mark Computer as Owned, and we end up having two owned principals. Now that we informed BloodHound about our owned principals, we can run the Shortest Paths to Domain Admins from Owned Principals query.
 ---
 # Authentication
