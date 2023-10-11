@@ -58,6 +58,11 @@ feroxbuster -u <URL> -k -x php -o output.file
 ```
 - `-k`: accept the certificate
 
+# Fuzzing
+```
+ffuf -k -u https://watch.streamio.htb/search.php -d "q=FUZZ" -w /usr/share/seclists/Fuzzing/special-chars.txt -H "Content-Type: application/x-www-form-encoded"
+```
+
 # SQL Injection
 1. Single quote check
 2. `ORDER BY`
