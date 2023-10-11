@@ -1,4 +1,22 @@
 # MSSQL
+Get databases:
+```
+select name from sys.databases;
+```
+Get tables from the given database:
+```
+select TABLE_NAME from <DB-name>.INFORMATION_SCHEMA.TABLES;
+```
+Dump data from the table
+```
+select * from <db-name>..<table-name>;
+```
+```
+select * from <db-name>.dbo.<table-name>;
+```
+
+
+
 
 # `sqsh`
 
