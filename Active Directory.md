@@ -159,6 +159,11 @@ gpp-decrypt "+bsY0V3d4/KgX3VJdO/vyepPfAN1zMFTiQDApgR92JE"
 ```
 ---
 ## [SharpHound](https://github.com/BloodHoundAD/SharpHound)
+### First Method
+```
+bloodhound.py -d domain.local -u username -p password -gc dc1.domain.local -ns <name-server-ip-addr-dc> -c all --zip
+```
+### Second Method
 Data Collector for BloodHound
 - Import the script
 ```
