@@ -51,6 +51,7 @@ api/
 3. `UNION`
 4. `user()`
 5. `system_user()`
-6. `LOAD_FILE('c:/windows32/system32/license.rtf')`
-7. xp cmd (MS SQL)
+6. `@@datadir`
+7. `LOAD_FILE('c:/windows32/system32/license.rtf')`
+8. xp cmd (MS SQL)
 
