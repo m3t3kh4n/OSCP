@@ -1,5 +1,9 @@
 # MSSQL
 ## CLI
+Cli command
+```
+sqlcmd
+```
 Get databases:
 ```
 select name from sys.databases;
