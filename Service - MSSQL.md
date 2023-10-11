@@ -14,6 +14,20 @@ select * from <db-name>..<table-name>;
 ```
 select * from <db-name>.dbo.<table-name>;
 ```
+Some useful variables:
+```
+@@version
+
+# Current user
+user
+
+# Current DB
+db_name()
+# You can increase number
+db_name(0)
+db_name(1)
+
+```
 
 # Command Injection
 ## `xp_cmdshell`
