@@ -32,6 +32,26 @@ Connect to SMB Share (NULL):
 ```
 smbclient //192.168.217.10/name/ -U ''
 ```
+# crackmapexec
+```
+crackmapexec smb <IP> --users
+```
+```
+crackmapexec smb <IP> --shares
+```
+```
+crackmapexec smb <IP> --shares --users
+```
+```
+crackmapexec smb <IP> -u '' --shares --users
+```
+```
+crackmapexec smb <IP> -u '.' --shares --users
+```
+```
+crackmapexec smb <IP> -u '' -p '' --shares --users
+```
+
 
 # rpcclient
 ```
