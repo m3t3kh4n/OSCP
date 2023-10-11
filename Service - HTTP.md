@@ -59,11 +59,18 @@ feroxbuster -u <URL> -k -x php -o output.file
 - `-k`: accept the certificate
 
 # Fuzzing
+- Special characters
 ```
 ffuf -k -u https://watch.streamio.htb/search.php -d "q=FUZZ" -w /usr/share/seclists/Fuzzing/special-chars.txt -H "Content-Type: application/x-www-form-encoded"
 ```
 - `-fl`: Filter Line
-- Also sometimes use URL encode function to encode the payloads
+- `-fs`: Filter size
+> "Also sometimes use URL encode function to encode the payloads"
+- Parameter fuzzing
+```
+ffuf -k -u https://url.com/?FUZZ=id -w /seclists/Discovery/Web-Content/burp-parameter-names.txt -H 'Cookie: <somecookies>'
+```
+
 
 # SQL Injection
 1. Single quote check
