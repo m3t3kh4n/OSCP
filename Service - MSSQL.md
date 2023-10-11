@@ -4,6 +4,9 @@ Cli command
 ```
 sqlcmd
 ```
+```
+sqlcmd -U <username> -P '<password>' -Q 'query goes here;'
+```
 Get databases:
 ```
 select name from sys.databases;
