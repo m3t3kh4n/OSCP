@@ -10,6 +10,10 @@ cat filename.ps1 | iconv -t UTF-16LE | base64 -w 0
 ```
 powershell -enc <base64-payload>
 ```
+# List hidden files
+```
+gci -force .
+```
 
 
 ---
