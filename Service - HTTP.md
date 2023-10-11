@@ -52,6 +52,12 @@ api/
 .git
 ```
 
+# Directory Busting
+```
+feroxbuster -u <URL> -k -x php -o output.file
+```
+- `-k`: accept the certificate
+
 # SQL Injection
 1. Single quote check
 2. `ORDER BY`
