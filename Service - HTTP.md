@@ -29,6 +29,12 @@
 - [ ] XSS for stealing Administrator cookies
 - [ ] CSRF for executing some commands on behalf of Administrator
 - [ ] See URL place try \\<your-ip>\random share for NTLM Relay and LLMNR Poisoning
+- [ ] Getting NTLM
+  - [ ] File upload file URL as a share
+  - [ ] JS `src` as a share
+  - [ ] Command Injection
+  - [ ] `impacket-smbserver sharename $(pwd) -smb2support`
+  - [ ] 
 
 # `gobuster`
 - Using Basic Auth
