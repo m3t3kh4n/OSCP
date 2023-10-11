@@ -12,6 +12,7 @@
   - [ ] `AlwaysInstallElevated`
   - [ ] `SeDebugPrivilege`
 - [ ] Check installed softwares: `c:\Program Files (x86)`
+- [ ] `winpeas.exe cmd`
 ```
 #https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#alwaysinstallelevated
 
