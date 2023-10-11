@@ -4,7 +4,7 @@
   - [ ] [NT AUTHORITY\LOCAL SERVICE](https://itm4n.github.io/localservice-privileges/?ref=benheater.com); This will enable `SeImpersonatePrivilege`.
 - [ ] Local Users: `net users`
 - [ ] Local Groups: `net localgroup`
-  - [ ] `LAPS Reader`: `Get-ADComputer -Property *` -> `ms-Mcs-AdmPwd`
+  - [ ] `LAPS Reader`: `Get-ADComputer -Property *` -> `ms-Mcs-AdmPwd`; There is also a script called `laps.py`.
 - [ ] Network interfaces: `ipconfig`
 - [ ] Open Ports: `netstat -ano`
 - [ ] `whoami /priv` ->
