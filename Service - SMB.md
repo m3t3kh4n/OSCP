@@ -22,6 +22,16 @@ List SMB Shares (NULL):
 ```
 smbclient -L //192.168.217.10/ -U ''
 ```
+List SMB Shares (Anonymous):
+```
+smbclient -L //192.168.217.10/ -U 'anonymous'
+```
+Connect SMB Shares (Anonymous):
+```
+smbclient -N //192.168.217.10/sharename
+```
+
+
 
 Connect to SMB Share:
 ```
