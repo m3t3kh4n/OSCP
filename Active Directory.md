@@ -103,6 +103,11 @@ Get-NetSession -ComputerName <computer-name> -Verbose
 ```
 Get-NetUser -SPN | select samaccountname,serviceprincipalname
 ```
+## `ldapsearch`
+```
+ldapsearch -h domain.local -D 'username@domain.local' -w 'password' -b 'dc=domain,dc=local'
+```
+
 ### Enumerating Object Permissions
 Juicy Permissions:
 ```
