@@ -163,6 +163,10 @@ gpp-decrypt "+bsY0V3d4/KgX3VJdO/vyepPfAN1zMFTiQDApgR92JE"
 ```
 bloodhound.py -d domain.local -u username -p password -gc dc1.domain.local -ns <name-server-ip-addr-dc> -c all --zip
 ```
+> `-c all` is important
+
+> Also, check SIDs. If they are 5**, they are default groups. Check for 1*** groups and accounts that are not default. Right Click and add High-Value Target.
+
 ### Second Method
 Data Collector for BloodHound
 - Import the script
