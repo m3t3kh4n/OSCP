@@ -51,6 +51,9 @@ crackmapexec smb <IP> -u '.' --shares --users
 ```
 crackmapexec smb <IP> -u '' -p '' --shares --users
 ```
+```
+crackmapexec smb <IP> -u 'DoesNotExist' -p '' --shares
+```
 
 
 # rpcclient
