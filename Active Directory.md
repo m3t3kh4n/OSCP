@@ -307,6 +307,9 @@ We'll need to provide a username and password to do this. If the credentials are
 ./kerbrute passwordspray --dc <dc-ip> -d domain.local users.txt 'Password123!'
 ```
 > Time skew should be max 5m-10m different!
+```
+ntpdate <dc-ip>
+```
 
 
 If you receive a network error, make sure that the encoding of usernames.txt is ANSI. You can use Notepad's Save As functionality to change the encoding.
