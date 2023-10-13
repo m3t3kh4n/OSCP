@@ -71,6 +71,9 @@ crackmapexec smb <IP> -u 'DoesNotExist' -p '' --shares
 rpcclient -U "" 10.10.10.169
 ```
 ```
+rpcclient -U "" -N 10.10.10.169
+```
+```
 enumdomusers
 ```
 ```
