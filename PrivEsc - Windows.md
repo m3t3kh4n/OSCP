@@ -97,3 +97,12 @@ netstat –nao
 dir C:\Windows\System32\config\RegBack\SAM
 dir C:\Windows\System32\config\RegBack\SYSTEM
 ```
+
+# Sensitive Files
+```
+Get-ChildItem "C:\Users\*\AppData\Roaming\Microsoft\Windows\Recent\*" -Recurse -Force
+Get-ChildItem "C:\Users\*\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" -Force
+Get-ChildItem "C:\Users\*\AppData\Local\Temp\*" -Recurse -Force
+Get-ChildItem "C:\`$Recycle.Bin\*" -Recurse -Force
+```
+
