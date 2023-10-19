@@ -106,3 +106,14 @@ Get-ChildItem "C:\Users\*\AppData\Local\Temp\*" -Recurse -Force
 Get-ChildItem "C:\`$Recycle.Bin\*" -Recurse -Force
 ```
 
+--- 
+
+# Useful Links
+- https://sushant747.gitbooks.io/total-oscp-guide/content/privilege_escalation_windows.html
+- https://github.com/0xsyr0/OSCP
+- https://github.com/frizb/Windows-Privilege-Escalation
+- https://github.com/PowerShellMafia/PowerSploit/blob/master/Privesc/PowerUp.ps1
+- https://blog.certcube.com/powerup-cheatsheet/
+
+
+
