@@ -18,6 +18,7 @@ wget -r ftp://user:pass@ip/
 
 # Default Credentials
 - https://github.com/danielmiessler/SecLists/blob/master/Passwords/Default-Credentials/ftp-betterdefaultpasslist.txt
+- `ftp:ftp`
 ```
 hydra -C <the file given above> <ip> ftp
 ```
