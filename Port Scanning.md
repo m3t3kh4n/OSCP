@@ -10,6 +10,12 @@ All Port Scan
 ```
 nmap -p- -T4 --min-rate=800 -vv <ip>
 ```
+```
+nmap -p- -T4 -sC -sV -A -vv <ip>
+```
+```
+nmap -p- -T4 -sC -sV -A -vv -n -Pn <ip>
+```
 
 Normal Scan
 
