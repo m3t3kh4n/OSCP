@@ -16,6 +16,9 @@ nmap -p- -T4 -sC -sV -A -vv <ip>
 ```
 nmap -p- -T4 -sC -sV -A -vv -n -Pn <ip>
 ```
+```
+nmap -p- -T4 -sC -sV -A -vv -n -Pn --script vuln <ip>
+```
 
 Normal Scan
 
