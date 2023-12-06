@@ -47,5 +47,6 @@ $!
 $1$!
 $!$1
 ```
-
+# NTLM
+- If it starts with `31d6` it means it is empty
 
