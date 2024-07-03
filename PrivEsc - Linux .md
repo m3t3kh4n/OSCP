@@ -7,6 +7,9 @@
 - [ ] Check user's `.bashrc`
 - [ ] SUID Bit
 - [ ] `sudo -l`
+  - [ ] GTFOBins
+  - [ ] Try to read the binary (maybe it is `.sh` script)
+  - [ ] Run the binary as `sudo <binary-full-path>`
 - [ ] Cron Job
   - [ ] There may be missing library for binary file we can write create and write it [HINT](https://www.youtube.com/watch?v=LlzpyGcA-ak&ab_channel=Tech69)
 - [ ] Get the usernames from `/home` start brute force for the users
