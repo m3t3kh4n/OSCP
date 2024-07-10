@@ -14,6 +14,8 @@
   - [ ] `SeDebugPrivilege`
 - [ ] Check installed softwares: `c:\Program Files (x86)`
 - [ ] `winpeas.exe cmd`
+- [ ] `tasklist`
+- [ ] `netstat -ano`
 ```
 #https://book.hacktricks.xyz/windows-hardening/windows-local-privilege-escalation#alwaysinstallelevated
 
