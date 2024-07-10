@@ -44,6 +44,18 @@ Let's go back; execute `session`, choose `session`; Then:
 start
 ```
 
+## Local Port Forwarding
+
+For example, there is a port on the host that is only visible for `127.0.0.1` at the victim, so you can to like that:
+
+- After running the commands up (starting proxy; running agent; and start the session) add the command below on the Kali terminal (not in ligolo):
+
+```
+ip route add 240.0.0.1/32 dev ligolo
+```
+
+Then you will be able to see the local port forwarding on the given ip `240.0.0.1`.
+
 # Listener
 ```
 listener_add --addr 0.0.0.0:80 --to 127.0.0.1:80 --tcp
