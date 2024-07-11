@@ -2,6 +2,15 @@
 
 ## Virtual Host (VHost Enumeration)
 
+### Wordlists
+
+```
+/usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+/usr/share/wordlists/seclists/Discovery/DNS/dns-Jhaddix.txt
+```
+
+### Commands
+
 ```
 #ffuf (-fs: filter out all the responses of that size)
 ffuf -u http://example.com/ -H "Host: FUZZ.example.com" -w wordlist.txt -fs 1234
