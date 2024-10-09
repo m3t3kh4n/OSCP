@@ -20,3 +20,8 @@ Low Level:
 Web Locations
 - `/srv/http/`
 - `/var/www/html/`
+
+## Tools
+
+- [ ] adPEAS
+- [ ] lasagne (password recovery project)
