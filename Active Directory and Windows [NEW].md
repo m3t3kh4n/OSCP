@@ -23,6 +23,7 @@
 - [Rubeus](https://github.com/GhostPack/Rubeus) - for Kerberos
 - [kekeo](https://github.com/gentilkiwi/kekeo)\* - for Kerberoasting (NOT_USE)
 - [Invoke-Kerberoast.ps1](https://github.com/EmpireProject/Empire/blob/master/data/module_source/credentials/Invoke-Kerberoast.ps1)\* - for Kerberoasting (NOT_USE)
+- [Mimikatz](https://github.com/ParrotSec/mimikatz)
 
 ## Commands
 
@@ -203,8 +204,85 @@ hashcat -m 18200 -a 0 hash.txt Pass.txt
 
 ### Pass the Ticket (PtH)
 
+Pass the ticket works by dumping the TGT from the LSASS memory of the machine. The Local Security Authority Subsystem Service (LSASS) is a memory process that stores credentials on an active directory server and can store Kerberos ticket along with other credential types to act as the gatekeeper and accept or reject the credentials provided. You can dump the Kerberos Tickets from the LSASS memory just like you can dump hashes. When you dump the tickets with mimikatz it will give us a `.kirbi` ticket which can be used to gain domain admin if a domain admin ticket is in the LSASS memory. This attack is great for privilege escalation and lateral movement if there are unsecured domain service account tickets laying around. The attack allows you to escalate to domain admin if you dump a domain admin's ticket and then impersonate that ticket using mimikatz PTT attack allowing you to act as that domain admin. You can think of a pass the ticket attack like reusing an existing ticket were not creating or destroying any tickets here were simply reusing an existing ticket from another user on the domain and impersonating that ticket.
 
+![image](https://github.com/user-attachments/assets/9c0188db-029e-48f2-8f19-7da16a2f80f6)
+
+#### mimikatz
+
+```
+# CMD - Run as Administrator
+.\mimikatz.exe
+#In mimikatz context menu
+privilege::debug
+# [output '20' OK] if it does not that means you do not have the administrator privileges to properly run mimikatz
+# Export all of the .kirbi tickets into the current dir
+sekurlsa::tickets /export
+# cache and impersonate the given ticket
+kerberos::ptt <ticket-full-name>
+# Verify by listing our cached tickets (in CMD)
+klist
+```
+
+#### Pass the Ticket Mitigation
+
+- Don't let your domain admins log onto anything except the domain controller - This is something so simple however a lot of domain admins still log onto low-level computers leaving tickets around that we can use to attack and move laterally with.
 
 ### Golden/Silver Ticket Attacks
 
-### Skeleton key attacks using mimikatz
+A silver ticket can sometimes be better used in engagements rather than a golden ticket because it is a little more discreet. If stealth and staying undetected matter then a silver ticket is probably a better option than a golden ticket however the approach to creating one is the exact same. The key difference between the two tickets is that a silver ticket is limited to the service that is targeted whereas a golden ticket has access to any Kerberos service.
+
+A specific use scenario for a silver ticket would be that you want to access the domain's SQL server however your current compromised user does not have access to that server. You can find an accessible service account to get a foothold with by kerberoasting that service, you can then dump the service hash and then impersonate their TGT in order to request a service ticket for the SQL service from the KDC allowing you access to the domain's SQL server.
+
+In order to fully understand how these attacks work you need to understand what the difference between a KRBTGT and a TGT is. A KRBTGT is the service account for the KDC this is the Key Distribution Center that issues all of the tickets to the clients. If you impersonate this account and create a golden ticket form the KRBTGT you give yourself the ability to create a service ticket for anything you want. A TGT is a ticket to a service account issued by the KDC and can only access that service the TGT is from like the SQLService ticket.
+
+A golden ticket attack works by dumping the ticket-granting ticket of any user on the domain this would preferably be a domain admin however for a golden ticket you would dump the krbtgt ticket and for a silver ticket, you would dump any service or domain admin ticket. This will provide you with the service/domain admin account's SID or security identifier that is a unique identifier for each user account, as well as the NTLM hash. You then use these details inside of a mimikatz golden ticket attack in order to create a TGT that impersonates the given service account information.
+
+#### mimikatz
+
+```
+# Dump the krbtgt hash
+.\mimikatz.exe
+privilege::debug
+# dump the hash as well as the security identifier needed to create a Golden Ticket. To create a silver ticket you need to change the /name: to dump the hash of either a domain admin account or a service account such as the SQLService account
+lsadump::lsa /inject /name:krbtgt
+# Create golden ticket
+kerberos::golden /user:Administrator /domain:controller.local /sid: /krbtgt: /id:
+# Create silver ticket
+kerberos::golden /user:Administrator /domain:controller.local /sid:<sid-of-service-account> /krbtgt:<service-NTLM-hash> /id:<id>
+#<id> can be 1103
+# Use the Golden/Silver Ticket to access other machines
+# open a new elevated command prompt with the given ticket in mimikatz
+misc::cmd
+```
+
+> Access machines that you want, what you can access will depend on the privileges of the user that you decided to take the ticket from however if you took the ticket from krbtgt you have access to the ENTIRE network hence the name golden ticket; however, silver tickets only have access to those that the user has access to if it is a domain admin it can almost access the entire network however it is slightly less elevated from a golden ticket.
+
+### Skeleton key attacks using mimikatz (Kerberos Backdoors)
+
+Unlike the golden and silver ticket attacks a Kerberos backdoor is much more subtle because it acts similar to a rootkit by implanting itself into the memory of the domain forest allowing itself access to any of the machines with a master password. The Kerberos backdoor works by implanting a skeleton key that abuses the way that the AS-REQ validates encrypted timestamps. A skeleton key only works using Kerberos RC4 encryption. The default hash for a mimikatz skeleton key is `60BA4FCADC466C7A033C178194C03DF6` which makes the password -"`mimikatz`".
+
+The skeleton key works by abusing the AS-REQ encrypted timestamps as I said above, the timestamp is encrypted with the users NT hash. The domain controller then tries to decrypt this timestamp with the users NT hash, once a skeleton key is implanted the domain controller tries to decrypt the timestamp using both the user NT hash and the skeleton key NT hash allowing you access to the domain forest.
+
+#### mimikatz
+
+```
+.\mimikatz.exe
+privilege::debug
+misc::skeleton
+# Then in CMD
+# share will now be accessible without the need for the Administrators password
+net use c:\\DOMAIN-CONTROLLER\admin$ /user:Administrator mimikatz
+```
+
+> The skeleton key will not persist by itself because it runs in the memory, it can be scripted or persisted using other tools and techniques.
+
+## References
+- [ ] https://medium.com/@t0pazg3m/pass-the-ticket-ptt-attack-in-mimikatz-and-a-gotcha-96a5805e257a
+- [ ] https://ired.team/offensive-security-experiments/active-directory-kerberos-abuse/as-rep-roasting-using-rubeus-and-hashcat
+- [ ] https://posts.specterops.io/kerberoasting-revisited-d434351bd4d1
+- [ ] https://www.harmj0y.net/blog/redteaming/not-a-security-boundary-breaking-forest-trusts/
+- [ ] https://www.varonis.com/blog/kerberos-authentication-explained/
+- [ ] https://www.blackhat.com/docs/us-14/materials/us-14-Duckwall-Abusing-Microsoft-Kerberos-Sorry-You-Guys-Don't-Get-It-wp.pdf
+- [ ] https://www.sans.org/cyber-security-summit/archives/file/summit-archive-1493862736.pdf
+- [ ] https://www.redsiege.com/wp-content/uploads/2020/04/20200430-kerb101.pdf
