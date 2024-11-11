@@ -5,6 +5,7 @@
   - [ ] LaZagne
   - [ ] Snaffler
   - [ ] mimikittenz
+- [ ] Password Reuse
 - [ ] Bloodhound
 
 ## Tools
