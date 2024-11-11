@@ -21,6 +21,8 @@
 
 - [kerbrute](https://github.com/ropnop/kerbrute) - to brute-force and enumerate valid active-directory users by abusing the Kerberos pre-authentication
 - [Rubeus](https://github.com/GhostPack/Rubeus) - for Kerberos
+- [kekeo](https://github.com/gentilkiwi/kekeo)\* - for Kerberoasting (NOT_USE)
+- [Invoke-Kerberoast.ps1](https://github.com/EmpireProject/Empire/blob/master/data/module_source/credentials/Invoke-Kerberoast.ps1)\* - for Kerberoasting (NOT_USE)
 
 ## Commands
 
@@ -145,10 +147,64 @@ This attack will take a given Kerberos-based password and spray it against all f
 
 ### Kerberoasting
 
+Kerberoasting allows a user to request a service ticket for any service with a registered SPN then use that ticket to crack the service password. If the service has a registered SPN then it can be Kerberoastable however the success of the attack depends on how strong the password is and if it is trackable as well as the privileges of the cracked service account. To enumerate Kerberoastable accounts I would suggest a tool like BloodHound to find all Kerberoastable accounts, it will allow you to see what kind of accounts you can kerberoast if they are domain admins, and what kind of connections they have to the rest of the domain.
+
+#### Kerberoasting w/ Rubeus
+
+```
+.\Rubeus.exe kerberoast /nowrap
+#After getting hash crack it using hashcat
+hashcat -m 13100 -a 0 hash.txt Pass.txt
+```
+
+#### Kerberoasting w/ Impacket
+
+```
+#Python Impacket
+#this does not have to be on the targets machine and can be done remotely
+/opt/impacket/examples/GetUserSPNs.py controller.local/Machine1:Password1 -dc-ip 10.10.171.81 -request
+```
+
+> After cracking the service account password there are various ways of exfiltrating data or collecting loot depending on whether the service account is a domain admin or not. If the service account is a domain admin you have control similar to that of a golden/silver ticket and can now gather loot such as dumping the **NTDS.dit**. If the service account is not a domain admin you can use it to log into other systems and pivot or escalate or you can use that cracked password to spray against other service and domain admin accounts; many companies may reuse the same or similar passwords for their service or domain admin users.
+
+#### kekeo
+
+#### Invoke-Kerberoast.ps1
+
+#### Kerberoasting Mitigation
+- Strong Service Passwords - If the service account passwords are strong then kerberoasting will be ineffective
+- Don't Make Service Accounts Domain Admins - Service accounts don't need to be domain admins, kerberoasting won't be as effective if you don't make service accounts domain admins.
+
 ### AS-REP Roasting with Rubeus and Impacket
 
-### Golden/Silver Ticket Attacks
+Very similar to Kerberoasting, AS-REP Roasting dumps the krbasrep5 hashes of user accounts that have Kerberos pre-authentication disabled. Unlike Kerberoasting these users do not have to be service accounts the only requirement to be able to AS-REP roast a user is the user must have pre-authentication disabled.
+
+During pre-authentication, the users hash will be used to encrypt a timestamp that the domain controller will attempt to decrypt to validate that the right hash is being used and is not replaying a previous request. After validating the timestamp the KDC will then issue a TGT for the user. If pre-authentication is disabled you can request any authentication data for any user and the KDC will return an encrypted TGT that can be cracked offline because the KDC skips the step of validating that the user is really who they say that they are.
+
+#### Dumping KRBASREP5 Hashes w/ Rubeus
+
+Rubeus is easier to use because it automatically finds AS-REP Roastable users whereas with GetNPUsers you have to enumerate the users beforehand and know which users may be AS-REP Roastable.
+
+```
+# looking for vulnerable users and then dump found vulnerable user hashes
+.\Rubeus.exe asreproast /nowrap
+# cracking
+hashcat -m 18200 -a 0 hash.txt Pass.txt
+```
+
+#### kekeo 
+
+#### GetNPUsers.py
+
+#### AS-REP Roasting Mitigations
+
+- Have a strong password policy. With a strong password, the hashes will take longer to crack making this attack less effective
+- Don't turn off Kerberos Pre-Authentication unless it's necessary there's almost no other way to completely mitigate this attack other than keeping Pre-Authentication on.
 
 ### Pass the Ticket (PtH)
+
+
+
+### Golden/Silver Ticket Attacks
 
 ### Skeleton key attacks using mimikatz
