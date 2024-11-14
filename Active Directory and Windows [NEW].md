@@ -31,6 +31,85 @@
 
 - User and Password: https://github.com/Cryilllic/Active-Directory-Wordlists/tree/master
 
+## NTLM and NetNTLM
+
+New Technology LAN Manager (NTLM) is the suite of security protocols used to authenticate users' identities in AD. NTLM can be used for authentication by using a challenge-response-based scheme called NetNTLM. This authentication mechanism is heavily used by the services on a network. However, services that use NetNTLM can also be exposed to the internet. The following are some of the popular examples:
+
+- Internally-hosted Exchange (Mail) servers that expose an Outlook Web App (OWA) login portal
+- Remote Desktop Protocol (RDP) service of a server being exposed to the internet.
+- Exposed VPN endpoints that were integrated with AD.
+- Web applications that are internet-facing and make use of NetNTLM.
+
+NetNTLM, also often referred to as Windows Authentication or just NTLM Authentication, allows the application to play the role of a middle man between the client and AD. All authentication material is forwarded to a Domain Controller in the form of a challenge, and if completed successfully, the application will authenticate the user.
+
+This means that the application is authenticating on behalf of the user and not authenticating the user directly on the application itself. This prevents the application from storing AD credentials, which should only be stored on a Domain Controller. This process is shown in the diagram below:
+
+![image](https://github.com/user-attachments/assets/a82e64ff-351c-40c5-9386-378c44523d73)
+
+### Brute Force
+
+We could perhaps try to use these for brute force attacks if we recovered information such as valid email addresses during our initial red team recon. Since most AD environments have account lockout configured, we won't be able to run a full brute-force attack. Instead, we need to perform a password spraying attack. Instead of trying multiple different passwords, which may trigger the account lockout mechanism, we choose and use one password and attempt to authenticate with all the usernames we have acquired.
+
+### Password Spraying
+
+## LDAP (Lightweight Directory Access Protocol)
+
+LDAP authentication is similar to NTLM authentication. However, with LDAP authentication, the application directly verifies the user's credentials. The application has a pair of AD credentials that it can use first to query LDAP and then verify the AD user's credentials. LDAP authentication is a popular mechanism with third-party (non-Microsoft) applications that integrate with AD. These include applications and systems such as:
+
+- Gitlab
+- Jenkins
+- Custom-developed web applications
+- Printers
+- VPNs
+
+If any of these applications or services are exposed on the internet, the same type of attacks as those leveraged against NTLM authenticated systems can be used. However, since a service using LDAP authentication requires a set of AD credentials, it opens up additional attack avenues. In essence, we can attempt to recover the AD credentials used by the service to gain authenticated access to AD. The process of authentication through LDAP is shown below:
+
+![image](https://github.com/user-attachments/assets/65ef0bab-8e4e-4ecb-91f4-bdec5c5c1a27)
+
+### LDAP Pass-back Attacks
+
+LDAP Pass-back attacks can be performed when we gain access to a device's configuration where the LDAP parameters are specified. This can be, for example, the web interface of a network printer. Usually, the credentials for these interfaces are kept to the default ones, such as `admin:admin` or `admin:password`. Here, we won't be able to directly extract the LDAP credentials since the password is usually hidden. However, we can alter the LDAP configuration, such as the IP or hostname of the LDAP server. In an LDAP Pass-back attack, we can modify this IP to our IP and then test the LDAP configuration, which will force the device to attempt LDAP authentication to our rogue device. We can intercept this authentication attempt to recover the LDAP credentials. We will need to create a rogue LDAP server and configure it insecurely to ensure the credentials are sent in plaintext.
+
+There are several ways to host a rogue LDAP server, but we will use OpenLDAP for this example.
+
+```
+sudo apt-get update && sudo apt-get -y install slapd ldap-utils && sudo systemctl enable slapd
+sudo dpkg-reconfigure -p low slapd
+```
+
+Before using the rogue LDAP server, we need to make it vulnerable by downgrading the supported authentication mechanisms. We want to ensure that our LDAP server only supports `PLAIN` and `LOGIN` authentication methods. To do this, we need to create a new ldif file, called with the following content:
+
+```
+#olcSaslSecProps.ldif
+dn: cn=config
+replace: olcSaslSecProps
+olcSaslSecProps: noanonymous,minssf=0,passcred
+```
+
+The file has the following properties:
+- `olcSaslSecProps`: Specifies the SASL security properties
+- `noanonymous`: Disables mechanisms that support anonymous login
+- `minssf`: Specifies the minimum acceptable security strength with 0, meaning no protection.
+
+Now we can use the ldif file to patch our LDAP server using the following:
+
+```
+sudo ldapmodify -Y EXTERNAL -H ldapi:// -f ./olcSaslSecProps.ldif && sudo service slapd restart
+```
+
+We can verify that our rogue LDAP server's configuration has been applied using the following command:
+
+```
+ldapsearch -H ldap:// -x -LLL -s base -b "" supportedSASLMechanisms
+```
+
+Then listen for the service:
+
+```
+sudo tcpdump -SX -i breachad tcp port 389
+```
+
+
 ## Kerberos (Windows ticket-granting service (TGS))
 
 Kerberos is a computer network authentication protocol that operates based on tickets, allowing nodes to securely prove their identity to one another over a non-secure network. It primarily aims at a client-server model and provides mutual authentication, where the user and the server verify each other's identity. The Kerberos protocol messages are protected against eavesdropping and replay attacks, and it builds on symmetric-key cryptography, requiring a trusted third party.
