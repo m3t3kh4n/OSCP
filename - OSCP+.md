@@ -1,5 +1,11 @@
 # New Notes - OSCP+ (2024-11)
 
+## Checklist
+
+- [ ] `Ctrl + R` and search for "recent"
+- [ ] Check recent access page to see what has been accessed
+- [ ] 
+
 ## Study Resource
 
 - Windows/AD HTB Academy
