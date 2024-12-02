@@ -2,8 +2,8 @@
 
 ## Checklist
 
-- [ ] `Ctrl + R` and search for "recent"
-- [ ] Check recent access page to see what has been accessed
+- [ ] `Windows + R` and search for "recent"
+- [ ] Check "Quick Access" page to see what has been accessed
 - [ ] 
 
 ## Study Resource
