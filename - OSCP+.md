@@ -4,7 +4,8 @@
 
 - [ ] `Windows + R` and search for "recent"
 - [ ] Check "Quick Access" page to see what has been accessed
-- [ ] 
+- [ ] Old Windows
+  - [ ] `Windows Server (R) 2008 Standard 6001 Service Pack 1`:  
 
 ## Study Resource
 
