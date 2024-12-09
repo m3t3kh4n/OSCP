@@ -16,6 +16,10 @@
   - [ ] Silver Ticket
   - [ ] Skeleton Key
 - [ ] Pass the Hash
+- [ ] Check Folders
+  - [ ] `Program Files (x86)` - for different folders to find out the folder -> software name -> local priv esc
+  - [ ] `Program Files` - for different folders to find out the folder -> software name -> local priv esc
+  - [ ] 
 - [ ] Old Windows
   - [ ] Windows Server (R) 2008 Standard 6001 Service Pack 1 -> CVE-2009-3103 - MS09-050 -> exploit/windows/smb/ms09_050_smb2_negotiate_func_index
 
