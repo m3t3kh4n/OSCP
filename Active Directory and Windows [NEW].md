@@ -69,6 +69,13 @@ If you are not able to find PowerShell, try to run the full path:
 ```
 C:\Windows\System32\WindowsPowershell\v1.0\powershell.exe C:\Windows\Temp\filename.ps1
 ```
+Find correct version of .NET library to run **`GodPotato`**:
+```
+cd reg query "HKLM\SOFTWARE\Microsoft\Net Framework Setup\NDP" /s
+```
+```
+Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -Recurse
+```
 
 
 ## NTLM and NetNTLM
