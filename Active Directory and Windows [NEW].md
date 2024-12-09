@@ -60,6 +60,13 @@ If there is a PATH issue fixing it:
 set PATH=%SystemRoot%\system32;%SystemRoot%;
 ```
 
+## Common Issues
+
+If you are not able to find PowerShell, try to run the full path:
+```
+C:\Windows\System32\WindowsPowershell\v1.0\powershell.exe C:\Windows\Temp\filename.ps1
+```
+
 
 ## NTLM and NetNTLM
 
