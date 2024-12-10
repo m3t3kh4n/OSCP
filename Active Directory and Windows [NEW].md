@@ -20,6 +20,7 @@
   - [ ] `Program Files (x86)` - for different folders to find out the folder -> software name -> local priv esc
   - [ ] `Program Files` - for different folders to find out the folder -> software name -> local priv esc
 - [ ] Check the logged in users and if there are services working like XAMPP or Apache, probably the Apache user is logged in. Then try to create a shell on working folder of PHP and the user should be apache. After that, get a reverse shell using this user and it will give you apache user and generally service accounts has `SeImpersonatePrivilege` permission and then use GodPotato.
+  - [ ] if there are services it is okay to change the binary and then stop/restart the service to get shell using the service account.
   - [ ] 
 - [ ] Old Windows
   - [ ] Windows Server (R) 2008 Standard 6001 Service Pack 1 -> CVE-2009-3103 - MS09-050 -> exploit/windows/smb/ms09_050_smb2_negotiate_func_index
