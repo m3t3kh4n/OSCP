@@ -58,7 +58,11 @@
 - [GetNPUsers.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/GetNPUsers.py): AS-REP Roasting (AS-REP hashes for users with the 'Do not require Kerberos preauthentication' set)
 - [lookupsid.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/lookupsid.py): SID bruteforcing
 - [ticketer.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/ticketer.py): creation and customization of TGT/TGS tickets. It can be used for Golden Ticket creation, child to parent trust attacks
-- 
+- [raiseChild.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/raiseChild.py): automated child to parent domain privilege escalation
+- [Active Directory Explorer](https://docs.microsoft.com/en-us/sysinternals/downloads/adexplorer): AD viewer and editor. It can be used to navigate an AD database and view object properties and attributes. It can also be used to save a snapshot of an AD database for offline analysis. When an AD snapshot is loaded, it can be explored as a live version of the database. It can also be used to compare two AD database snapshots to see changes in objects, attributes, and security permissions.
+- [PingCastle](https://www.pingcastle.com/documentation/): auditing the security level of an AD environment based on a risk assessment and maturity framework (based on CMMI adapted to AD security).
+- [Group3r](https://github.com/Group3r/Group3r): auditing and finding security misconfigurations in AD Group Policy Objects (GPO)
+- [ADRecon](https://github.com/adrecon/ADRecon): extract various data from a target AD environment. The data can be output in Microsoft Excel format with summary views and analysis to assist with analysis and paint a picture of the environment's overall security state
 
 
 ## Active Directory Enumeration & Attacks
@@ -82,3 +86,4 @@
 - IMPORTANT: https://github.com/dafthack/DomainPasswordSpray
 - HashCat d3ad0ne rule: https://github.com/hashcat/hashcat/blob/master/rules/d3ad0ne.rule
 - SMB Responder SCF file attacks: https://pentestlab.blog/2017/12/13/smb-share-scf-file-attacks/
+- CMMI: https://en.wikipedia.org/wiki/Capability_Maturity_Model_Integration
