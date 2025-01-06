@@ -1,5 +1,3 @@
-![image](https://github.com/user-attachments/assets/2b757fa4-d326-4dab-822f-e05e15a6524b)# HackTheBox Academy - Active Directory
-
 # Table of Contents
 
 # MindMap Checklist
@@ -78,6 +76,32 @@
 ##### Toolkit
 
 #### Tools of the Trade
+
+**Username Enumeration** (find valid usernames)
+ - Kerbrute in conjunction with the jsmith.txt or jsmith2.txt (https://github.com/insidetrust/statistically-likely-usernames)
+ - https://github.com/ropnop/kerbrute/releases/tag/v1.0.3
+```
+kerbrute userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 jsmith.txt -o valid_ad_users
+```
+
+Identifying Potential Vulnerabilities
+The local system account NT AUTHORITY\SYSTEM is a built-in account in Windows operating systems. It has the highest level of access in the OS and is used to run most Windows services. It is also very common for third-party services to run in the context of this account by default. A SYSTEM account on a domain-joined host will be able to enumerate Active Directory by impersonating the computer account, which is essentially just another kind of user account. Having SYSTEM-level access within a domain environment is nearly equivalent to having a domain user account.
+
+There are several ways to gain SYSTEM-level access on a host, including but not limited to:
+
+Remote Windows exploits such as MS08-067, EternalBlue, or BlueKeep.
+Abusing a service running in the context of the SYSTEM account, or abusing the service account SeImpersonate privileges using Juicy Potato. This type of attack is possible on older Windows OS' but not always possible with Windows Server 2019.
+Local privilege escalation flaws in Windows operating systems such as the Windows 10 Task Scheduler 0-day.
+Gaining admin access on a domain-joined host with a local account and using Psexec to launch a SYSTEM cmd window
+By gaining SYSTEM-level access on a domain-joined host, you will be able to perform actions such as, but not limited to:
+
+Enumerate the domain using built-in tools or offensive tools such as BloodHound and PowerView.
+Perform Kerberoasting / ASREPRoasting attacks within the same domain.
+Run tools such as Inveigh to gather Net-NTLMv2 hashes or perform SMB relay attacks.
+Perform token impersonation to hijack a privileged domain user account.
+Carry out ACL attacks.
+
+
 
 
 # References:
