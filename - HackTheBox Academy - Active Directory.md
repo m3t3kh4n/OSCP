@@ -1,5 +1,14 @@
 # Table of Contents
 
+# CHEKLIST
+
+- SMB NULL session (user enum)
+- LDAP anonymous bind (user enum)
+- LLMNR/NBT-NS Poisoning
+- Password Spraying
+- If SMB NULL, LDAP anony doesn't work user enum then Kerbrute using jsmith.txt username list from the statistically-likely-usernames
+- 
+
 # MindMap Checklist
 - password sparying: Get all users (enum4linux) > Get password minimum character count > Complexity (if yes: Uppercase, smallcase, special char, number)
 - Kerberoasting
@@ -8,6 +17,10 @@
 - username enum: Kerbrute
 - shadow credentials (https://posts.specterops.io/shadow-credentials-abusing-key-trust-account-mapping-for-takeover-8ee1a53566ab)
 - DCSync
+- [Resource-Based Constrained Delegation \(RBCD\)](https://posts.specterops.io/another-word-on-delegation-10bdbe3cd94a)
+- [Shadow Credentials](https://www.fortalicesolutions.com/posts/shadow-credentials-workstation-takeover-edition)
+
+
 
 # Cheat Sheet
 
@@ -181,7 +194,85 @@ It is not always possible to disable LLMNR and NetBIOS, and therefore we need wa
 
 Furthermore, hosts can be monitored for traffic on ports UDP 5355 and 137, and event IDs 4697 and 7045 can be monitored for. Finally, we can monitor the registry key `HKLM\Software\Policies\Microsoft\Windows NT\DNSClient` for changes to the `EnableMulticast` DWORD value. A value of `0` would mean that LLMNR is disabled.
 
+# Password Spraying
 
+Enumerating the Password Policy - from Linux - Credentialed
+
+- CrackMapExec
+```
+crackmapexec smb 172.16.5.5 -u avazquez -p Password123 --pass-pol
+```
+- rpcclient
+
+Enumerating the Password Policy - from Linux - without CREDS
+- SMB NULL session
+
+
+- enum4linux
+- enum4linux-ng
+```
+enum4linux -P 172.16.5.5
+enum4linux-ng -P 172.16.5.5 -oA ilfreight
+```
+```
+CrackMapExec
+```
+```
+rpcclient -U "" -N 172.16.5.5
+
+```
+> Once connected, we can issue an RPC command such as `querydominfo` to obtain information about the domain and confirm NULL session access.
+> We can also obtain the password policy: `getdompwinfo`
+
+SMB NULL sessions allow an unauthenticated attacker to retrieve information from the domain, such as a complete listing of users, groups, computers, user account attributes, and the domain password policy
+
+**Enumerating Null Session - from Windows**
+```
+net use \\DC01\ipc$ "" /u:""
+```
+```
+net use \\DC01\ipc$ "" /u:guest
+```
+```
+net use \\DC01\ipc$ "password" /u:guest
+```
+
+- LDAP anonymous bind. (Enumerating the Password Policy - from Linux - LDAP Anonymous Bind)
+
+> windapsearch.py, ldapsearch, ad-ldapdomaindump.py
+  
+```
+ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "*" | grep -m 1 -B 10 pwdHistoryLength
+```
+
+Enumerating the Password Policy - from Windows
+
+> PowerView, CrackMapExec, SharpMapExec, SharpView
+
+```
+net accounts
+```
+
+```
+import-module .\PowerView.ps1
+Get-DomainPolicy
+```
+
+> Password complexity is enabled, meaning that a user must choose a password with 3/4 of the following: an uppercase letter, lowercase letter, number, special character (Password1 or Welcome1 would satisfy the "complexity" requirement here, but are still clearly weak passwords).
+
+The default password policy when a new domain is created is as follows, and there have been plenty of organizations that never changed this policy:
+Policy	Default Value
+Enforce password history	24 days
+Maximum password age	42 days
+Minimum password age	1 day
+Minimum password length	7
+Password must meet complexity requirements	Enabled
+Store passwords using reversible encryption	Disabled
+Account lockout duration	Not set
+Account lockout threshold	0
+Reset account lockout counter after	Not set
+
+**Password Spraying - Making a Target User List**
 
 
 
