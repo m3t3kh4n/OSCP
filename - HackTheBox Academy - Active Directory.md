@@ -349,6 +349,14 @@ sudo crackmapexec smb --local-auth 172.16.5.0/23 -u administrator -H 88ad09182de
 
 **Internal Password Spraying - from Windows**
 
+From a foothold on a domain-joined Windows host, the DomainPasswordSpray tool is highly effective. If we are authenticated to the domain, the tool will automatically generate a user list from Active Directory, query the domain password policy, and exclude user accounts within one attempt of locking out. Like how we ran the spraying attack from our Linux host, we can also supply a user list to the tool if we are on a Windows host but not authenticated to the domain.
+
+There are several options available to us with the tool. Since the host is domain-joined, we will skip the -UserList flag and let the tool generate a list for us. We'll supply the Password flag and one single password and then use the -OutFile flag to write our output to a file for later use.
+
+```
+Import-Module .\DomainPasswordSpray.ps1
+Invoke-DomainPasswordSpray -Password Welcome1 -OutFile spray_success -ErrorAction SilentlyContinue
+```
 
 
 
