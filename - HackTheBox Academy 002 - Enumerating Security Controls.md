@@ -286,19 +286,58 @@ Get-ADGroupMember -Identity "Backup Operators"
 | **Get-DomainForeignGroupMember** | Enumerates groups with users outside of the group's domain and returns each foreign member |
 | **Get-DomainTrustMapping**       | Will enumerate all trusts for the current domain and any others seen        |
 
+- provide us with information on all users or specific users we specify
+
+```
+Get-DomainUser -Identity mmorgan -Domain inlanefreight.local | Select-Object -Property name,samaccountname,description,memberof,whencreated,pwdlastset,lastlogontimestamp,accountexpires,admincount,userprincipalname,serviceprincipalname,useraccountcontrol
+```
+
+- Recursive Group Membership: retrieve group-specific information. Adding the -Recurse switch tells PowerView that if it finds any groups that are part of the target group (nested group membership) to list out the members of those groups
+
+```
+Get-DomainGroupMember -Identity "Domain Admins" -Recurse
+```
+
+- Trust Enumeration
+```
+Get-DomainTrustMapping
+```
+
+- Testing for Local Admin Access
+```
+Test-AdminAccess -ComputerName ACADEMY-EA-MS01
+```
+
+- Finding Users With SPN Set (Kerberoastable)
+```
+Get-DomainUser -SPN -Properties samaccountname,ServicePrincipalName
+```
+
+## SharpView
+
+- to enumerate information about a specific user
+```
+.\SharpView.exe Get-DomainUser -Identity forend
+```
+
+## Snaffler
+
+Snaffler works by obtaining a list of hosts within the domain and then enumerating those hosts for shares and readable directories. Once that is done, it iterates through any directories readable by our user and hunts for files that could serve to better our position within the assessment. _**Snaffler requires that it be run from a domain-joined host or in a domain-user context**_.
+
+```
+Snaffler.exe -s -d inlanefreight.local -o snaffler.log -v data
+```
+
+## BloodHound
+
+### SharpHound
+
+```
+.\SharpHound.exe -c All --zipfilename ILFREIGHT
+```
 
 
-
-
-
-
-
-
-
-
-
-
-
+# Living Off the Land
 
 
 
