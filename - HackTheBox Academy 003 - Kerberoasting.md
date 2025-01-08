@@ -129,5 +129,81 @@ hashcat -m 13100 sqldev_tgs_hashcat /usr/share/wordlists/rockyou.txt
 ```
 
 ### Automated / Tool Based Route
+- **Using PowerView to Extract TGS Tickets**
+```
+Import-Module .\PowerView.ps1
+Get-DomainUser * -spn | select samaccountname
+```
+- **Using PowerView to Target a Specific User**
+```
+Get-DomainUser -Identity sqldev | Get-DomainSPNTicket -Format Hashcat
+```
+- **Exporting All Tickets to a CSV File**
+```
+Get-DomainUser * -SPN | Get-DomainSPNTicket -Format Hashcat | Export-Csv .\ilfreight_tgs.csv -NoTypeInformation
+```
+- Viewing the Contents of the .CSV File
+```
+cat .\ilfreight_tgs.csv
+```
+#### Using Rubeus
+```
+- Performing Kerberoasting and outputting hashes to a file
+- Using alternate credentials
+- Performing Kerberoasting combined with a pass-the-ticket attack
+- Performing "opsec" Kerberoasting to filter out AES-enabled accounts
+- Requesting tickets for accounts passwords set between a specific date range
+- Placing a limit on the number of tickets requested
+- Performing AES Kerberoasting
+```
+- **Using the /stats Flag**
+```
+.\Rubeus.exe kerberoast /stats
+```
+Let's use Rubeus to request tickets for accounts with the admincount attribute set to 1. These would likely be high-value targets and worth our initial focus for offline cracking efforts with Hashcat. Be sure to specify the /nowrap flag so that the hash can be more easily copied down for offline cracking using Hashcat.
 
+- **Using the /nowrap Flag**
+```
+.\Rubeus.exe kerberoast /ldapfilter:'admincount=1' /nowrap
+```
+> Kerberoasting tools typically request RC4 encryption when performing the attack and initiating TGS-REQ requests. This is because RC4 is weaker and easier to crack offline using tools such as Hashcat than other encryption algorithms such as AES-128 and AES-256. When performing Kerberoasting in most environments, we will retrieve hashes that begin with `$krb5tgs$23$*`, an RC4 (type 23) encrypted ticket. Sometimes we will receive an AES-256 (type 18) encrypted hash or hash that begins with `$krb5tgs$18$*`. While it is possible to crack AES-128 (type 17) and AES-256 (type 18) TGS tickets using Hashcat, it will typically be significantly more time consuming than cracking an RC4 (type 23) encrypted ticket, but still possible especially if a weak password is chosen. Let's walk through an example.
 
+> Checking with PowerView, we can see that the `msDS-SupportedEncryptionTypes` attribute is set to `0`. The chart here tells us that a decimal value of 0 means that a specific encryption type is not defined and set to the default of `RC4_HMAC_MD5`.
+
+Reference: https://techcommunity.microsoft.com/t5/core-infrastructure-and-security/decrypting-the-selection-of-supported-kerberos-encryption-types/ba-p/1628797
+
+```
+Get-DomainUser testspn -Properties samaccountname,serviceprincipalname,msds-supportedencryptiontypes
+```
+
+> Let's assume that our client has set SPN accounts to support AES 128/256 encryption. If we check this with PowerView, we'll see that the `msDS-SupportedEncryptionTypes` attribute is set to `24`, meaning that AES 128/256 encryption types are the only ones supported. To run this through Hashcat, we need to use hash mode `19700`, which is `Kerberos 5`, `etype 18`, `TGS-REP (AES256-CTS-HMAC-SHA1-96)` per the handy Hashcat example_hashes table. We run the AES hash as follows and check the status, which shows it should take over 23 minutes to run through the entire rockyou.txt wordlist by typing s to see the status of the cracking job.
+
+Reference: https://hashcat.net/wiki/doku.php?id=example_hashes
+
+***We can use Rubeus with the `/tgtdeleg` flag to specify that we want only RC4 encryption when requesting a new service ticket. The tool does this by specifying RC4 encryption as the only algorithm we support in the body of the TGS request. This may be a failsafe built-in to Active Directory for backward compatibility. By using this flag, we can request an RC4 (type 23) encrypted ticket that can be cracked much faster.***
+
+![image](https://github.com/user-attachments/assets/07a5aea5-7e0b-43d3-b379-4e365989ca69)
+
+***In the above image, we can see that when supplying the `/tgtdeleg` flag, the tool requested an RC4 ticket even though the supported encryption types are listed as AES 128/256.***
+
+> Note: This does not work against a Windows Server 2019 Domain Controller, regardless of the domain functional level. It will always return a service ticket encrypted with the highest level of encryption supported by the target account. This being said, if we find ourselves in a domain with Domain Controllers running on Server 2016 or earlier (which is quite common), enabling AES will not partially mitigate Kerberoasting by only returning AES encrypted tickets, which are much more difficult to crack, but rather will allow an attacker to request an RC4 encrypted service ticket. In Windows Server 2019 DCs, enabling AES encryption on an SPN account will result in us receiving an AES-256 (type 18) service ticket, which is substantially more difficult (but not impossible) to crack, especially if a relatively weak dictionary password is in use.
+
+> It is possible to edit the encryption types used by Kerberos. This can be done by opening Group Policy, editing the Default Domain Policy, and choosing: Computer Configuration > Policies > Windows Settings > Security Settings > Local Policies > Security Options, then double-clicking on Network security: Configure encryption types allowed for Kerberos and selecting the desired encryption type allowed for Kerberos. Removing all other encryption types except for RC4_HMAC_MD5 would allow for the above downgrade example to occur in 2019. Removing support for AES would introduce a security flaw into AD and should likely never be done. Furthermore, removing support for RC4 regardless of the Domain Controller Windows Server version or domain functional level could have operational impacts and should be thoroughly tested before implementation.
+
+Mitigation & Detection
+
+An important mitigation for non-managed service accounts is to set a long and complex password or passphrase that does not appear in any word list and would take far too long to crack. However, it is recommended to use Managed Service Accounts (MSA), and Group Managed Service Accounts (gMSA), which use very complex passwords, and automatically rotate on a set interval (like machine accounts) or accounts set up with LAPS.
+
+Reference: https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/managed-service-accounts-understanding-implementing-best/ba-p/397009
+
+Reference: https://docs.microsoft.com/en-us/windows-server/security/group-managed-service-accounts/group-managed-service-accounts-overview
+
+Kerberoasting requests Kerberos TGS tickets with RC4 encryption, which should not be the majority of Kerberos activity within a domain. When Kerberoasting is occurring in the environment, we will see an abnormal number of TGS-REQ and TGS-REP requests and responses, signaling the use of automated Kerberoasting tools. Domain controllers can be configured to log Kerberos TGS ticket requests by selecting Audit Kerberos Service Ticket Operations within Group Policy.
+
+Reference: https://docs.microsoft.com/en-us/windows/security/threat-protection/auditing/audit-kerberos-service-ticket-operations
+
+Doing so will generate two separate event IDs: 4769: A Kerberos service ticket was requested, and 4770: A Kerberos service ticket was renewed. 10-20 Kerberos TGS requests for a given account can be considered normal in a given environment. A large amount of 4769 event IDs from one account within a short period may indicate an attack.
+
+Some other remediation steps include restricting the use of the RC4 algorithm, particularly for Kerberos requests by service accounts. This must be tested to make sure nothing breaks within the environment. Furthermore, Domain Admins and other highly privileged accounts should not be used as SPN accounts (if SPN accounts must exist in the environment).
+
+Reference: https://adsecurity.org/?p=3458
