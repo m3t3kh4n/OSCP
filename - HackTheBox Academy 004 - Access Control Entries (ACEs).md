@@ -121,6 +121,13 @@ Get-ADObject -SearchBase "CN=Extended-Rights,$((Get-ADRootDSE).ConfigurationNami
 Get-DomainObjectACL -ResolveGUIDs -Identity * | ? {$_.SecurityIdentifier -eq $sid} -Verbose
 ```
 
+```
+Get-DomainObjectACL -ResolveGUIDs -Identity "GPO Management" |
+  Where-Object { $_.SecurityIdentifier -eq $sid } |
+  Select-Object -First 1 |
+  Select-Object ObjectAceType
+```
+
 Some manual work if no tools available:
 
 - we've first made a list of all domain users with the following command
