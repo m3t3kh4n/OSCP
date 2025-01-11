@@ -198,6 +198,8 @@ When dealing with multiple domains and our target domain is not the same as the 
 lsadump::dcsync /user:INLANEFREIGHT\lab_adm /domain:INLANEFREIGHT.LOCAL
 ```
 
+# Attacking Domain Trusts - Child -> Parent Trusts - from Linux
+
 
 
 
