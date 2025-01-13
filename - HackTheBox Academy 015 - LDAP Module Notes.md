@@ -60,3 +60,8 @@ PowerShell `PASSWD_NOTREQD`:
 ```
 Get-ADUser -Filter {userAccountControl -band 32} -Properties userAccountControl | Select-Object Name, SamAccountName, userAccountControl
 ```
+
+`whoami /priv` PowerView alternative:
+```
+(Get-DomainPolicy).PrivilegeRights
+```
