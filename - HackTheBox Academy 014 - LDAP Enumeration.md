@@ -64,18 +64,38 @@ We can use it to pull domain information and confirm a `NULL` bind. This particu
 python3 ldapsearch-ad.py -l 10.129.1.207 -t info
 ```
 
+# Credentialed LDAP Enumeration
 
+As with SMB, once we have domain credentials, we can extract a wide variety of information from LDAP, including user, group, computer, trust, GPO info, the domain password policy, etc. `ldapsearch-ad.py` and `windapsearch` are useful for performing this enumeration.
 
+## `windapsearch`
 
+```
+python3 windapsearch.py --dc-ip 10.129.1.207 -u inlanefreight\\james.cross --da
+```
 
+Some additional useful options, including pulling users and computers with unconstrained delegation.
 
+```
+python3 windapsearch.py --dc-ip 10.129.1.207 -d inlanefreight.local -u inlanefreight\\james.cross --unconstrained-users
+```
 
+## `Ldapsearch-ad`
 
+This tool can perform all of the standard enumeration and a few built-in searches to simplify things. We can quickly obtain the password policy.
 
+```
+python3 ldapsearch-ad.py -l 10.129.1.207 -d inlanefreight -u james.cross -p Summer2020 -t pass-pols
+```
 
+We can look for users who may be subject to a Kerberoasting attack.
 
+```
+python3 ldapsearch-ad.py -l 10.129.1.207 -d inlanefreight -u james.cross -p Summer2020 -t kerberoast | grep servicePrincipalName:
+```
 
+Also, it quickly retrieves users that can be ASREPRoasted.
 
-
-
-
+```
+python3 ldapsearch-ad.py -l 10.129.1.207 -d inlanefreight -u james.cross -p Summer2020 -t asreproast
+```
