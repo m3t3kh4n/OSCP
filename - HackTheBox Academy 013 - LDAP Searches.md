@@ -138,6 +138,273 @@ Finally, let's see an example of combining filters and piping output multiple ti
 Get-ADUser -Filter "adminCount -eq '1'" -Properties * | where servicePrincipalName -ne $null | select SamAccountName,MemberOf,ServicePrincipalName | fl
 ```
 
+# LDAP Search Filters
+
+## Basic LDAP Filter Syntax and Operators
+
+The LDAPFilter parameter with the same cmdlets lets us use LDAP search filters when searching for information.
+
+LDAP filters must have one or more criteria. If more than one criteria exist, they can be concatenated together using logical AND or OR operators. These operators are always placed in the front of the criteria (operands), which is also referred to as Polish Notation.
+
+Reference: https://en.wikipedia.org/wiki/Polish_notation
+
+Filter rules are enclosed in parentheses and can be grouped by surrounding the group in parentheses and using one of the following comparison operators:
+
+| Operator | Function |
+|----------|----------|
+| `&`      | and      |
+| `|`      | or       |
+| `!`      | not      |
+
+Some example `AND` and `OR` operations are as follows:
+
+`AND` Operation:
+- One criteria: `(& (..C1..) (..C2..))`
+- More than two criteria: `(& (..C1..) (..C2..) (..C3..))`
+
+`OR` Operation:
+- One criteria: `(| (..C1..) (..C2..))`
+- More than two criteria: `(| (..C1..) (..C2..) (..C3..))`
+
+We can also have nested operations, for example "`(|(& (..C1..) (..C2..))(& (..C3..) (..C4..)))`" translates to "`(C1 AND C2) OR (C3 AND C4)`".
+
+
+## Search Criteria
+
+When writing an LDAP search filter, we need to specify a rule requirement for the LDAP attribute in question (i.e. "`(displayName=william)`"). The following rules can be used to specify our search criteria:
+
+| Criteria            | Rule                | Example                                      |
+|---------------------|---------------------|----------------------------------------------|
+| Equal to            | `(attribute=123)`   | `(&(objectclass=user)(displayName=Smith))`   |
+| Not equal to        | `(!(attribute=123))`| `(!objectClass=group)`                      |
+| Present             | `(attribute=*)`     | `(department=*)`                            |
+| Not present         | `(!(attribute=*))`  | `(!homeDirectory=*)`                        |
+| Greater than        | `(attribute>=123)`  | `(maxStorage=100000)`                       |
+| Less than           | `(attribute<=123)`  | `(maxStorage<=100000)`                      |
+| Approximate match   | `(attribute~=123)`  | `(sAMAccountName~=Jason)`                   |
+| Wildcards           | `(attribute=*A)`    | `(givenName=*Sam)`                          |
+
+Reference: https://docs.bmc.com/docs/fpsc121/ldap-attributes-and-associated-fields-495323340.html
+
+## Object Identifiers (OIDs)
+
+We can also use matching rule **Object Identifiers (OIDs)** with LDAP filters as listed in this Search Filter Syntax document from Microsoft:
+
+Reference: https://ldapwiki.com/wiki/Wiki.jsp?page=OID
+
+Reference: https://docs.microsoft.com/en-us/windows/win32/adsi/search-filter-syntax
+
+| Matching Rule OID          | String Identifier            | Description                                                                                                      |
+|----------------------------|------------------------------|------------------------------------------------------------------------------------------------------------------|
+| `1.2.840.113556.1.4.803`   | `LDAP_MATCHING_RULE_BIT_AND` | A match is found only if all bits from the attribute match the value. This rule is equivalent to a bitwise AND operator. |
+| `1.2.840.113556.1.4.804`   | `LDAP_MATCHING_RULE_BIT_OR`  | A match is found if any bits from the attribute match the value. This rule is equivalent to a bitwise OR operator.      |
+| `1.2.840.113556.1.4.1941`  | `LDAP_MATCHING_RULE_IN_CHAIN`| This rule is limited to filters that apply to the DN. This is a special "extended" match operator that walks the chain of ancestry in objects all the way to the root until it finds a match. |
+
+We can clarify the above OIDs with some examples. Let's take the following LDAP query:
+
+```
+(&(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=2)) 
+```
+
+This query will return all administratively disabled user accounts, or `ACCOUNTDISABLE` (2). We can combine this query as an LDAP search filter with the "`Get-ADUser`" cmdlet against our target domain. The LDAP query can be shortened as follows:
+
+Reference: https://ldapwiki.com/wiki/Wiki.jsp?page=ACCOUNTDISABLE
+
+- **LDAP Query - Filter Disabled User Accounts**
+```
+Get-ADUser -LDAPFilter '(userAccountControl:1.2.840.113556.1.4.803:=2)' | select name
+```
+
+Now let's look at an example of the extensible match rule "`1.2.840.113556.1.4.1941`". Consider the following query:
+```
+(member:1.2.840.113556.1.4.1941:=CN=Harry Jones,OU=Network Ops,OU=IT,OU=Employees,DC=INLANEFREIGHT,DC=LOCAL)
+```
+
+This matching rule will find all groups that the user `Harry Jones` `("CN=Harry Jones,OU=Network Ops,OU=IT,OU=Employees,DC=INLANEFREIGHT,DC=LOCAL")` is a member of. Using this filter with the "`Get-ADGroup`" cmdlet gives us the following output:
+
+- **LDAP Query - Find All Groups**
+```
+Get-ADGroup -LDAPFilter '(member:1.2.840.113556.1.4.1941:=CN=Harry Jones,OU=Network Ops,OU=IT,OU=Employees,DC=INLANEFREIGHT,DC=LOCAL)' | select Name
+```
+
+## Filter Types, Item Types & Escaped Characters
+
+With LDAP search filters, we have the following four filter types:
+
+Reference: https://ldapwiki.com/wiki/Wiki.jsp?page=LDAP%20SearchFilters
+
+| Operator | Meaning                  |
+|----------|--------------------------|
+| `=`      | Equal to                |
+| `~=`     | Approximately equal to  |
+| `>=`     | Greater than or equal to |
+| `<=`     | Less than or equal to    |
+
+And we have four item types:
+
+| Type             | Meaning                       |
+|------------------|-------------------------------|
+| `=`              | Simple                        |
+| `=*`             | Present                       |
+| `=something*`    | Substring                    |
+| `Extensible`     | Varies depending on type      |
+
+Finally, the following characters must be escaped if used in an LDAP filter:
+
+| Character | Represented as Hex |
+|-----------|---------------------|
+| `*`       | `\2a`              |
+| `(`       | `\28`              |
+| `)`       | `\29`              |
+| `\`       | `\5c`              |
+| `NUL`     | `\00`              |
+
+
+## Example LDAP Filters
+
+Let's build a few more LDAP filters to use against our test domain.
+
+We can use the filter "`(&(objectCategory=user)(description=*))`" to find all user accounts that do not have a blank description field. This is a useful search that should be performed on every internal network assessment as it not uncommon to find passwords for users stored in the user description attribute in AD (which can be read by all AD users).
+
+Combining this with the "`Get-ADUser`" cmdlet, we can search for all domain users that do not have a blank description field and, in this case, find a service account password!
+
+- **LDAP Query - Description Field**
+```
+Get-ADUser -Properties * -LDAPFilter '(&(objectCategory=user)(description=*))' | select samaccountname,description
+```
+This filter "`(userAccountControl:1.2.840.113556.1.4.803:=524288)`" can be used to find all users or computers marked as trusted for delegation, or unconstrained delegation, which will be covered in a later module on Kerberos Attacks. We can enumerate users with the help of this LDAP filter:
+
+```
+Get-ADUser -Properties * -LDAPFilter '(userAccountControl:1.2.840.113556.1.4.803:=524288)' | select Name,memberof, servicePrincipalName,TrustedForDelegation | fl
+```
+
+We can enumerate computers with this setting as well:
+
+- **LDAP Query - Find Trusted Computers**
+```
+Get-ADComputer -Properties * -LDAPFilter '(userAccountControl:1.2.840.113556.1.4.803:=524288)' | select DistinguishedName,servicePrincipalName,TrustedForDelegation | fl
+```
+
+Lastly, let's search for all users with the "`adminCount`" attribute set to `1` whose "`useraccountcontrol`" attribute is set with the flag "`PASSWD_NOTREQD`," meaning that the account can have a blank password set. To do this, we must combine two LDAP search filters as follows:
+
+```
+(&(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=32))(adminCount=1)
+```
+
+- **LDAP Query - Users With Blank Password**
+```
+Get-AdUser -LDAPFilter '(&(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=32))(adminCount=1)' -Properties * | select name,memberof | fl
+```
+
+While uncommon, we find accounts without a password set from time to time, so it is always important to enumerate accounts with the `PASSWD_NOTREQD` flag set and check to see if they indeed do not have a password set. This could happen intentionally (perhaps as a timesaver) or accidentally if a user with this flag set changes their password via command line and accidentally presses enter before typing in a password. All organizations should perform periodic account audits and remove this flag from any accounts that have no valid business reason to have it set.
+
+Try out building some filters of your own. This guide Active Directory: LDAP Syntax Filters is a great starting point. https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
+
+## Recursive Match
+
+We can use the "`RecursiveMatch`" parameter in a similar way that we use the matching rule OID "`1.2.840.113556.1.4.1941`". A good example of this is to find all of the groups that an AD user is a part of, both directly and indirectly. This is also known as "nested group membership." For example, the user `bob.smith` may not be a direct member of the Domain Admins group but has derivative Domain Admin rights because the group Security Operations is a member of the Domain Admins group. We can see this graphically by looking at Active Directory Computers and Users.
+
+We can enumerate this with PowerShell several ways, one way being the "`Get-ADGroupMember`" cmdlet.
+
+- **PowerShell - Members Of Security Operations**
+```
+Get-ADGroupMember -Identity "Security Operations"
+```
+
+As we can see above, the `Security Operations` group is indeed "nested" within the `Domain Admins` group. Therefore any of its members are effectively `Domain Admins`.
+
+Searching for a user's group membership using `Get-ADUser` focusing on the property memberof will not directly show this information.
+
+- **PowerShell - User's Group Membership**
+```
+Get-ADUser -Identity harry.jones -Properties * | select memberof | ft -Wrap
+```
+
+We can find nested group membership with the matching rule OID and the `RecursiveMatch` parameter, as seen in the following examples. The first example shows an AD filter and the `RecursiveMatch` to recursively query for all groups that the user `harry.jones` is a member of.
+
+- **PowerShell - All Groups of User**
+```
+Get-ADGroup -Filter 'member -RecursiveMatch "CN=Harry Jones,OU=Network Ops,OU=IT,OU=Employees,DC=INLANEFREIGHT,DC=LOCAL"' | select name
+```
+
+Another way to return this same information is by using an LDAPFilter and the matching rule OID.
+
+- **LDAP Query - All Groups of User**
+```
+Get-ADGroup -LDAPFilter '(member:1.2.840.113556.1.4.1941:=CN=Harry Jones,OU=Network Ops,OU=IT,OU=Employees,DC=INLANEFREIGHT,DC=LOCAL)' |select Name
+```
+
+As shown in the above examples, searching recursively in AD can help us enumerate information that standard search queries do not show. Enumerating nested group membership is very important. We may uncover serious misconfigurations within the target AD environment that would otherwise go unnoticed, especially in large organizations with thousands of objects in AD. We will see other ways to enumerate this information and even ways of presenting it in a graphical format, but `RecursiveMatch` is a powerful search parameter that should not be overlooked.
+
+## SearchBase and SearchScope Parameters
+
+Even small Active Directory environments can contain hundreds if not thousands of objects. Active Directory can grow very quickly as users, groups, computers, OUs, etc., are added, and ACLs are set up, which creates an increasingly complex web of relationships. We may also find ourselves in a vast environment, 10-20 years old, with 10s of thousands of objects. Enumerating these environments can become an unwieldy task, so we need to refine our searches.
+
+We can improve the performance of our enumeration commands and scripts and reduce the volume of objects returned by scoping our searches using the "`SearchBase`" parameter. This parameter specifies an Active Directory path to search under and allows us to begin searching for a user account in a specific OU. The "`SearchBase`" parameter accepts an OUs distinguished name (DN) such as "`OU=Employees,DC=INLANEFREIGHT,DC=LOCAL`".
+
+"`SearchScope`" allows us to define how deep into the OU hierarchy we would like to search. This parameter has three levels:
+
+| Name       | Level | Description                                                                                                                                                                                                                       |
+|------------|-------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Base`     | `0`   | The object is specified as the SearchBase. For example, if we ask for all users in an OU defining a base scope, we get no results. If we specify a user or use `Get-ADObject`, we get just that user or object returned.            |
+| `OneLevel` | `1`   | Searches for objects in the container defined by the SearchBase but not in any sub-containers.                                                                                            |
+| `SubTree`  | `2`   | Searches for objects contained by the SearchBase and all child containers, including their children, recursively all the way down the AD hierarchy.                                        |
+
+When querying AD using "`SearchScope`" we can specify the name or the number (i.e., `SearchScope Onelevel` is interpreted the same as "`SearchScope 1`".)
+
+![image](https://github.com/user-attachments/assets/3ee259ad-bb84-4a95-925b-da9f2b1401eb)
+
+In the above example, with the `SearchBase` set to `OU=Employees,DC=INLANEFREIGHT,DC=LOCAL`, a `SearchScope` set to `Base` would attempt to query the OU object (`Employees`) itself. A `SearchScope` set to `OneLevel` would search within the `Employees OU` only. Finally, a `SearchScope` set to `SubTree` would query the `Employees OU` and all of the OUs underneath it, such as `Accounting`, `Contractors`, etc. OUs under those OUs (child containers).
+
+## SearchBase and Search Scope Parameters Examples
+Let's look at some examples to illustrate the difference between `Base`, `OneLevel`, and `Subtree`. For these examples, we will focus on the `Employees` OU. In the screenshot of Active Directory Users and Computers below Employees is the `Base`, and specifying it with `Get-ADUser` will return nothing. `OneLevel` will return just the user Amelia Matthews, and `SubTree` will return all users in all child containers under the Employees container.
+
+![image](https://github.com/user-attachments/assets/e4121a83-85af-4846-9ed0-1ef0f21b4fd7)
+
+We can confirm these results using PowerShell. For reference purposes, let's get a count of all AD users under the Employees OU, which shows 970 users.
+
+**PowerShell - Count of All AD Users**
+
+- **PowerShell - Count of All AD Users**
+```
+(Get-ADUser -SearchBase "OU=Employees,DC=INLANEFREIGHT,DC=LOCAL" -Filter *).count
+```
+
+As expected, specifying a `SearchScope` of Base will return nothing.
+
+- **PowerShell - SearchScope Base**
+```
+Get-ADUser -SearchBase "OU=Employees,DC=INLANEFREIGHT,DC=LOCAL" -SearchScope Base -Filter *
+```
+
+However, if we specify "`Base`" with "`Get-ADObject`" we will get just the object (Employees OU) returned to us.
+
+- **PowerShell - SearchScope Base OU Object**
+```
+Get-ADObject -SearchBase "OU=Employees,DC=INLANEFREIGHT,DC=LOCAL" -SearchScope Base -Filter *
+```
+
+If we specify `OneLevel` as the `SearchScope`, we get one user returned to us, as expected per the image above.
+
+- **PowerShell - Searchscope OneLevel**
+```
+Get-ADUser -SearchBase "OU=Employees,DC=INLANEFREIGHT,DC=LOCAL" -SearchScope OneLevel -Filter *
+```
+
+As stated above, the `SearchScope` values are interchangeable, so the same result is returned when specifying 1 as the `SearchScope` value.
+
+- **PowerShell - Searchscope 1**
+```
+Get-ADUser -SearchBase "OU=Employees,DC=INLANEFREIGHT,DC=LOCAL" -SearchScope 1 -Filter *
+```
+
+Finally, if we specify `Subtree` as the `SearchBase`, we will get all objects within all child containers, which matches the user count we established above.
+
+- **PowerShell - Searchscope Subtree**
+```
+(Get-ADUser -SearchBase "OU=Employees,DC=INLANEFREIGHT,DC=LOCAL" -SearchScope Subtree -Filter *).count
+```
+
 
 
 
