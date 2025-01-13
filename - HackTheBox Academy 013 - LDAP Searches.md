@@ -405,7 +405,129 @@ Finally, if we specify `Subtree` as the `SearchBase`, we will get all objects wi
 (Get-ADUser -SearchBase "OU=Employees,DC=INLANEFREIGHT,DC=LOCAL" -SearchScope Subtree -Filter *).count
 ```
 
+# Enumerating Active Directory with Built-in Tools
 
+## User-Account-Control (UAC) Attributes
 
+**User-Account-Control Attributes** control the behavior of domain accounts. These values are not to be confused with the Windows User Account Control technology. Many of these UAC attributes have security relevance:
 
+![image](https://github.com/user-attachments/assets/a5021382-d2cb-4823-a854-603a5e8eebe5)
 
+We can enumerate these values with built-in AD cmdlets:
+
+- **PowerShell - Built-in AD Cmdlets**
+```
+Get-ADUser -Filter {adminCount -gt 0} -Properties admincount,useraccountcontrol | select Name,useraccountcontrol
+```
+
+We still need to convert the `useraccountcontrol` values into their corresponding flags to interpret them. This can be done with this script. Let's take the user `Jenna Smith` with `useraccountcontrol` value `4260384` as an example.
+
+- **PowerShell - UAC Values**
+```powershell
+################################################################################################
+# Convert-UserAccountControlValues.ps1
+# 
+# AUTHOR: Fabian Müller, Microsoft Deutschland GmbH
+# VERSION: 0.1.1
+# DATE: 23.11.2012
+#
+# THIS CODE-SAMPLE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED 
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR 
+# FITNESS FOR A PARTICULAR PURPOSE.
+#
+# This sample is not supported under any Microsoft standard support program or service. 
+# The script is provided AS IS without warranty of any kind. Microsoft further disclaims all
+# implied warranties including, without limitation, any implied warranties of merchantability
+# or of fitness for a particular purpose. The entire risk arising out of the use or performance
+# of the sample and documentation remains with you. In no event shall Microsoft, its authors,
+# or anyone else involved in the creation, production, or delivery of the script be liable for 
+# any damages whatsoever (including, without limitation, damages for loss of business profits, 
+# business interruption, loss of business information, or other pecuniary loss) arising out of 
+# the use of or inability to use the sample or documentation, even if Microsoft has been advised 
+# of the possibility of such damages.
+################################################################################################
+
+Function Set-UserAccountControlValueTable
+{
+	# see http://support.microsoft.com/kb/305144/en-us
+	
+    $userAccountControlHashTable = New-Object HashTable
+    $userAccountControlHashTable.Add("SCRIPT",1)
+    $userAccountControlHashTable.Add("ACCOUNTDISABLE",2)
+    $userAccountControlHashTable.Add("HOMEDIR_REQUIRED",8) 
+    $userAccountControlHashTable.Add("LOCKOUT",16)
+    $userAccountControlHashTable.Add("PASSWD_NOTREQD",32)
+    $userAccountControlHashTable.Add("ENCRYPTED_TEXT_PWD_ALLOWED",128)
+    $userAccountControlHashTable.Add("TEMP_DUPLICATE_ACCOUNT",256)
+    $userAccountControlHashTable.Add("NORMAL_ACCOUNT",512)
+    $userAccountControlHashTable.Add("INTERDOMAIN_TRUST_ACCOUNT",2048)
+    $userAccountControlHashTable.Add("WORKSTATION_TRUST_ACCOUNT",4096)
+    $userAccountControlHashTable.Add("SERVER_TRUST_ACCOUNT",8192)
+    $userAccountControlHashTable.Add("DONT_EXPIRE_PASSWORD",65536) 
+    $userAccountControlHashTable.Add("MNS_LOGON_ACCOUNT",131072)
+    $userAccountControlHashTable.Add("SMARTCARD_REQUIRED",262144)
+    $userAccountControlHashTable.Add("TRUSTED_FOR_DELEGATION",524288) 
+    $userAccountControlHashTable.Add("NOT_DELEGATED",1048576)
+    $userAccountControlHashTable.Add("USE_DES_KEY_ONLY",2097152) 
+    $userAccountControlHashTable.Add("DONT_REQ_PREAUTH",4194304) 
+    $userAccountControlHashTable.Add("PASSWORD_EXPIRED",8388608) 
+    $userAccountControlHashTable.Add("TRUSTED_TO_AUTH_FOR_DELEGATION",16777216) 
+    $userAccountControlHashTable.Add("PARTIAL_SECRETS_ACCOUNT",67108864)
+
+    $userAccountControlHashTable = $userAccountControlHashTable.GetEnumerator() | Sort-Object -Property Value 
+    return $userAccountControlHashTable
+}
+
+Function Get-UserAccountControlFlags($userInput)
+{    
+        Set-UserAccountControlValueTable | foreach {
+	    $binaryAnd = $_.value -band $userInput
+	    if ($binaryAnd -ne "0") { write $_ }
+    }
+}
+
+$userInputUserAccountControl = Read-Host "Please provide the userAccountControl value: "
+Get-UserAccountControlFlags($userInputUserAccountControl)
+```
+
+```
+.\Convert-UserAccountControlValues.ps1
+```
+
+We can also use `PowerView` (which will be covered in-depth in subsequent modules) to enumerate these values. We can see that some of the users match the default value of `512` or `Normal_Account` while others would need to be converted. The value for `jenna.smith` does match what our conversion script provided.
+
+- **PowerView - Domain Accounts**
+```
+Get-DomainUser * -AdminCount | select samaccountname,useraccountcontrol
+```
+
+## Enumeration Using Built-In Tools
+Tools that sysadmins are themselves likely to use, such as the **PowerShell AD Module**, the **Sysinternals Suite**, and **AD DS Tools**, are likely to be whitelisted and fly under the radar, especially in more mature environments. Several built-in tools can be leveraged for AD enumeration, including:
+
+**DS Tools** is available by default on all modern Windows operating systems but required domain connectivity to perform enumeration activities.
+
+### DS Tools
+```
+dsquery user "OU=Employees,DC=inlanefreight,DC=local" -name * -scope subtree -limit 0 | dsget user -samid -pwdneverexpires | findstr /V no
+```
+
+The **PowerShell Active Directory module** is a group of cmdlets used to manage Active Directory. The installation of the AD PowerShell module requires administrative access.
+
+### AD PowerShell Module
+```
+Get-ADUser -Filter * -SearchBase 'OU=Admin,DC=inlanefreight,dc=local'
+```
+
+**Windows Management Instrumentation (WMI)** can also be used to access and query objects in Active Directory. Many scripting languages can interact with the WMI AD provider, but PowerShell makes this very easy.
+
+### Windows Management Instrumentation (WMI)
+```
+Get-WmiObject -Class win32_group -Filter "Domain='INLANEFREIGHT'" | Select Caption,Name
+```
+
+**Active Directory Service Interfaces (ADSI)** is a set of **COM** interfaces that can query Active Directory. PowerShell again provides an easy way to interact with it.
+
+### AD Service Interfaces (ADSI)
+```
+([adsisearcher]"(&(objectClass=Computer))").FindAll() | select Path
+```
