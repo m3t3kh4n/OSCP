@@ -278,6 +278,7 @@ This is a summary of the many options we have for abusing ACLs. This topic will 
 
 Reference: https://github.com/FSecureLABS/SharpGPOAbuse
 
+# Enumerating Group Policy Objects (GPOs)
 
 
 
