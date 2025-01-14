@@ -20,5 +20,5 @@ Impacket-suite, netexec, bloodyAD, ldapdomaindump.
 
 https://wadcoms.github.io Is great reference for searching tools based on what you’re exploiting
 
-
+https://www.g0dmode.biz/active-directory-enumeration/domain-enumeration/password-policy
 
