@@ -136,14 +136,46 @@ Then run `Get-ADGroupMemberDate -Group "Help Desk" -DomainController DC01.INLANE
 Get-NetLocalGroupMember -GroupName "Remote Management Users" -ComputerName WS01
 ```
 
+# Enumerating AD Computers
 
+## Domain Computer Information
 
+We can use the `Get-DomainComputer` function to enumerate many details about domain computers.
+```
+.\SharpView.exe Get-DomainComputer -Help
+```
+Some of the most useful information we can gather is the hostname, operating system, and User Account Control (UAC) attributes.
+```
+.\SharpView.exe Get-DomainComputer -Properties dnshostname,operatingsystem,lastlogontimestamp,useraccountcontrol
+```
+Let's save this data to a CSV for our records using PowerView.
+```
+Get-DomainComputer -Properties dnshostname,operatingsystem,lastlogontimestamp,useraccountcontrol | Export-Csv .\inlanefreight_computers.csv -NoTypeInformation
+```
 
+## Finding Exploitable Machines
 
+The most obvious thing in the above screenshot is within the "User Account Control" setting, and we will get into that shortly. However, tools like Bloodhound will quickly point this setting out, and it may become uncommon to find in organizations that have regular penetration tests performed. The following flags can be combined to help come up with attacks:
+- **`LastLogonTimeStamp`**: This field exists to let administrators find stale machines. If this field is 90 days old for a machine, it has not been turned on and is missing both operating system and application patches. Due to this, administrators may want to automatically disable machines upon this field hitting 90 days of age. Attackers can use this field in combination with other fields such as **Operating System** or **When Created** to identify targets.
+- **`OperatingSystem`**: This lists the Operating System. The obvious attack path is to find a Windows 7 box that is still active (LastLogonTimeStamp) and try attacks like Eternal Blue. Even if Eternal Blue is not applicable, older versions of Windows are ideal spots to work from as there are fewer logging/antivirus capabilities on older Windows. It's also important to know the differences between flavors of Windows. For example, Windows 10 Enterprise is the only version that comes with "Credential Guard" (Prevents Mimikatz from Stealing Passwords) Enabled by default. If you see Administrators logging into Windows 10 Professional and Windows 10 Enterprise, the Professional box should be targeted.
+- **`WhenCreated`**: This field is created when a machine joins Active Directory. The older the box is, the more likely it is to deviate from the "Standard Build." Old workstations could have weaker local administration passwords, more local admins, vulnerable software, more data, etc.
 
+## Computer Attacks
+We can see if any computers in the domain are configured to allow **unconstrained delegation** and find one, the domain controller, which is standard.
 
+Reference: https://adsecurity.org/?p=1667
 
+```
+.\SharpView.exe Get-DomainComputer -Unconstrained -Properties dnshostname,useraccountcontrol
+```
 
+Finally, we can check for any hosts set up to allow for **constrained delegation**.
+
+Reference: https://docs.microsoft.com/en-us/windows-server/security/kerberos/kerberos-constrained-delegation-overview#:~:text=Constrained%20delegation%20gives%20service%20administrators,to%20their%20back%2Dend%20services.
+
+```
+Get-DomainComputer -TrustedToAuth | select -Property dnshostname,useraccountcontrol
+```
 
 
 
