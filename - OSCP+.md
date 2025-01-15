@@ -243,3 +243,13 @@ Then on kali if you send a request to MS1 on port 4444 it will get forwarded to 
 
 https://medium.com/@redfanatic7/guide-to-pivoting-using-ligolo-ng-efd36b290f16
 ```
+
+```
+As it now starts with a presumed breech, you need to priv esc on your current box, then conduct post enumeration, then laterally move. 
+
+Remember: 
+
+Go through every single folder under c:\users\ (with the exception of appdata/roaming)
+
+Use Bloodhound if you have a valid user. 
+```
