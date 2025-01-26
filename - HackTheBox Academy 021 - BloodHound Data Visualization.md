@@ -185,22 +185,197 @@ Now we can go to the Analysis tab and select Shortest Path from Owned Principals
 
 # Cypher Queries
 
+Cypher query to return all users
+```
+MATCH (u:User) RETURN u
+```
+This query uses the MATCH keyword to find all nodes labeled as User in the graph. We then use the RETURN keyword to return all the nodes found. Let's examine another query:
 
 
+Cypher query to return the user peter
+```
+MATCH (u:User {name:"PETER@INLANEFREIGHT.HTB"}) RETURN u
+```
+The above query uses the MATCH keyword to find the user with the property name equal to PETER@INLANEFREIGHT.HTB and returns the user.
 
 
+Cypher query to return the user peter
+```
+MATCH (u:User) WHERE u.name = "PETER@INLANEFREIGHT.HTB" RETURN u
+```
+
+Cypher query to return peter's group membership.
+```
+MATCH (u:User {name:"PETER@INLANEFREIGHT.HTB"})-[r:MemberOf]->(peterGroups) 
+RETURN peterGroups
+```
+
+## Cypher Attributes - Definitions
+
+![image](https://github.com/user-attachments/assets/659fe30e-8447-46fb-9997-0e6adb13b7bc)
+
+- **Nodes**	Represented with parentheses around the corresponding attributes and information.
+- **Variable**	A placeholder represents a node or a relationship in a query. For example, in the query `MATCH (n:User) RETURN n`, the variable `n` represents the node labeled `User`.
+- **Relationships**	Depicted by dashes and arrows, with the relationship type in brackets. These show the direction of the relationship. Ex: `->` shows a relationship going one way, while - depicts a relationship going in both directions. In BloodHound, relationships are usually shown toward other privileges.
+- **Label**	Used to group nodes based on their properties or characteristics. Labels are denoted by a colon : and are added to a variable. For example, in the query `MATCH (n:User) RETURN n`, the label `User` is used to group nodes with a user's characteristics.
+- **Property**	Used to store additional information about a node or a relationship and is denoted by a curly brace `{}`. For example, in the query `MATCH (n:User {name:"PETER@INLANEFREIGHT.HTB", enabled:TRUE}) RETURN n`, the properties `name` and `enabled` are associated with the node `n` to store additional information about the user.
+
+We can also display the relationship between the User and the Group by returning all variables n,r,g:
+
+- **Cypher query to return the user peter MemberOf relationship**
+```
+MATCH (n:User {name:"PETER@INLANEFREIGHT.HTB"})-[r:MemberOf]->(g:Group) 
+RETURN n,r,g
+```
+To do this graph in the BloodHound application, we can use the Raw Query bar, but We will need to add another variable, p, and wrap the query inside it, as follow:
+
+- **Cypher query to return the user peter MemberOf relationship**
+```
+MATCH p=((n:User {name:"PETER@INLANEFREIGHT.HTB"})-[r:MemberOf]->(g:Group)) 
+RETURN p
+```
+
+## Cypher Keywords
+Like SQL, Cypher uses keywords for specifying patterns, filtering, and returning results. The most common keywords are `MATCH`, `WHERE`, and `RETURN`.
+- **`MATCH`**	Used before describing the search pattern for finding one or more nodes or relationships.
+- **`WHERE`**	Used to add more constraints to specific patterns or filter out unwanted patterns.
+- **`RETURN`**	Used to specify the results format and organizes the resulting data. We can return results with specific properties, lists, ordering, etc.
+
+Return Peter's MemberOf relationships
+```
+MATCH p=((u:User {name:"PETER@INLANEFREIGHT.HTB"})-[r:MemberOf*1..]->(g:Group)) 
+RETURN p
+```
+Here we assign the variables `u` and `g` to User and Group, respectively, and tell BloodHound to find matching nodes using the `MemberOf` relationship (or edge). We are using something new, `1..*`, in this query. In this case, it indicates that the path can have a minimum depth of 1 and a maximum depth of any number. The `*` means that there is no upper limit on the depth of the path. This allows the query to match paths of any depth that start at a node with the label `User` and traverse through relationships of type `MemberOf` to reach a node with the label `Group`.
+
+We can also use a specific number instead of `*` to specify the maximum depth of the path. For example, `MATCH p=(n:User)-[r1:MemberOf*1..2]->(g:Group)` will match paths with a minimum depth of `1` and a maximum depth of `2`, meaning that the user must traverse through precisely one or two "MemberOf" relationships to reach the group node.
+
+Back to the query, the result is assigned to the variable `p` and will return the result of each path that matches the pattern we specified.
+
+Let's play a little bit with this query, and instead of showing both paths, let's match a path where the first group's name contains the substring `ITSECURITY`:
+
+- **Find a path where the first group's name contains ITSECURITY**
+```
+MATCH p=(n:User)-[r1:MemberOf*1..]->(g:Group)
+WHERE nodes(p)[1].name CONTAINS 'ITSECURITY'
+RETURN p
+```
+
+We have two nodes in the first group, `Domain Users` and `ITSECURITY`. The part `nodes(p)[1].name` refers to the name property of the first node in the path `p` obtained from the variable `nodes(p)`. We use the `CONTAINS` keyword only to return the path where the first group's name contains the substring `ITSECURITY`.
+
+Instead of the `CONTAINS` keyword, we can also use the `=~` operator to check if a string matches a `regular expression`. To match a path where the first group's name contains the substring `ITSECURITY`, we can use the following query:
+
+- **Find a path where the first group's name contains ITSECURITY**
+```
+MATCH p=(n:User)-[r1:MemberOf*1..]->(g:Group)
+WHERE nodes(p)[1].name =~ '(?i)itsecurity.*'
+RETURN p
+```
+
+We used two elements of a regular expression `(?i)` tells the regular expression engine to ignore the case of the characters in the pattern, and `.*` to match any number of characters.
+
+> Note: We can also use regular expressions in properties or any other element in a cypher query.
+
+Reference: https://neo4j.com/docs/cypher-cheat-sheet/current/
 
 
+### Analyzing a Basic BloodHound Query
+
+Let's look at a few built-in queries to BloodHound. We can enable the option `Query Debug Mode` in settings, which dumps queries into the `Raw Query` box, allowing us to see the query that BloodHound use behind the scene. The following query calculates the shortest paths to domain admins and is one we will use quite often to catch low-hanging fruit.
+
+- **Shortest paths to domain admins**
+```
+MATCH p=shortestPath((n)-[*1..]->(m:Group {name:"DOMAIN ADMINS@INLANEFREIGHT.HTB"})) 
+WHERE NOT n=m 
+RETURN p
+```
+
+> Note: The query return by BloodHound includes all relationship (edges) hardcoded which is faster, as it doesn't include Azure Edges. We use the `*..` expression, which means we are looking for any relationship. We did it to make it shorter for the example.
+
+This query comes with a function `shortestPath` is a Cypher function that finds the shortest path between two nodes in a graph. It is used in the MATCH clause of a Cypher query to find the shortest path between a starting node `n` and an ending node `m` that match certain conditions.
+
+We use the `WHERE NOT n=m` condition to exclude the possibility of the starting node and the ending node being the same node, as a node cannot have a path to itself.
+
+## Advanced BloodHound Queries
+
+> **!!! The first query we will show is the most important one. With this query, we can find almost any path in the domain shared by PlainText. He has been using this script to compromise any Active Directory during engagements, labs, and certifications labs.!!!** 
+
+- **ShortestPath from node that contains peter to any node**
+```
+MATCH p = shortestPath((n)-[*1..]->(c)) 
+WHERE n.name =~ '(?i)peter.*' AND NOT c=n 
+RETURN p
+```
+
+This script search for the shortestPath from any node to any node. In this example, if we manage to compromise Peter, but he doesn't have a path to Domain Admin or a High-Value Target, most likely, we won't get any results using default queries in BloodHound. However, by utilizing this query, we can determine if peter has access to a machine, a user, a group, GPO, or anything in the domain.
+
+The purpose of this script is to streamline the process of exploring our options after successfully compromising a user, computer, or group. If we compromise a user, we employ the query to determine the potential paths we can pursue with that user. Likewise, if we compromise a computer or group, we use the same script to identify the available opportunities for further exploitation.
+
+> Note: We can replace the function `shortestPath` with `allshortestpaths` to get every single relationship available.
+
+If we compromise a user and this script doesn't give you any result, we can use PowerView or SharpView to display user privileges over another object in AD.
+
+- **PowerView Identify ACL**
+```
+Import-Module c:\tools\PowerView.ps1
+Get-DomainObjectAcl -Identity peter -domain INLANEFREIGHT.HTB -ResolveGUIDs
+```
+
+> Note: The latest version of BloodHound includes Self privileges, which were not included in previous versions. For more information about using this PowerView method, we can take a look at: ACL Enumeration section in Active Directory Enumeration & Attacks module.
 
 
+### Custom Queries examples
+
+- **Finds specific rights that the Domain Users group should not have !!!!!!!!!!!!**
+```
+MATCH p=(g:Group)-[r:Owns|WriteDacl|GenericAll|WriteOwner|ExecuteDCOM|GenericWrite|AllowedToDelegate|ForceChangePassword]->(c:Computer) 
+WHERE g.name STARTS WITH "DOMAIN USERS" 
+RETURN p
+```
+
+> Some custom queries can only be run against the database from the Neo4j console via the browser accessible at http://localhost:7474/browser with the same credentials when starting BloodHound. For example, we can run this query to find all users with a description field that is not blank. This is an edge case, but it is common for account passwords to be stored in this field.
+
+- **Find all users with a description field that is not blank**
+```
+MATCH (u:User) 
+WHERE u.description IS NOT NULL 
+RETURN u.name,u.description
+```
+
+- **Find all local administrators and the host they are admin !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!**
+```
+MATCH (c:Computer) OPTIONAL MATCH (u1:User)-[:AdminTo]->(c) OPTIONAL MATCH (u2:User)-[:MemberOf*1..]->(:Group)-[:AdminTo]->(c) WITH COLLECT(u1) + COLLECT(u2) AS TempVar,c UNWIND TempVar AS Admins 
+RETURN c.name AS COMPUTER, COUNT(DISTINCT(Admins)) AS ADMIN_COUNT,COLLECT(DISTINCT(Admins.name)) AS USERS 
+ORDER BY ADMIN_COUNT DESC
+```
+
+- **Find `WriteSPN` edge**
+```
+MATCH p=((n)-[r:WriteSPN]->(m)) RETURN p
+```
+
+Reference: https://gist.github.com/jeffmcjunkin/7b4a67bb7dd0cfbfbd83768f3aa6eb12
+Reference: https://hausec.com/2019/09/09/bloodhound-cypher-cheatsheet/
+
+### Saving Custom Queries
+
+On Windows, the `AppData\Roaming\bloodhound` directory holds a variety of configuration files used by BloodHound.
+
+On Linux, these are stored in `/home/<username>/.config/bloodhound` or `/root/.config/bloodhound` if running as root.
+
+BloodHound config directory
+```
+ls /root/.config/bloodhound
+```
+The `config.json` file holds the current BloodHound configuration, including performance options, included edges, etc.
 
 
+The other file that we will focus on is the `customqueries.json` file. By default, it is blank.
 
+We can add to this file as we build and test queries. Clicking on the pencil icon next to Custom Queries in the Queries tab will open this file. As we add custom queries, the list will populate.
 
+BloodHound queries in the Analysis tab are loaded from the PrebuiltQueries.json file. We can find it in the BloodHound directory or Github.
 
+Reference: https://github.com/BloodHoundAD/BloodHound/blob/master/src/components/SearchContainer/Tabs/PrebuiltQueries.json
 
-
-
-
-
-
+Reference: https://www.ernw.de/download/BloodHoundWorkshop/ERNW_DogWhispererHandbook.pdf
