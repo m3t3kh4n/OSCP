@@ -108,6 +108,12 @@ Get-ChildItem "C:\Users\*\AppData\Local\Temp\*" -Recurse -Force
 Get-ChildItem "C:\`$Recycle.Bin\*" -Recurse -Force
 ```
 
+## DLL Hijacking
+We will use `systeminfo`’s `tzres.dll` but you should be able to use any .dll if you are willing to do the research. Create another reverse shell outputting the file as `tzres.dll` and transfer it to the victim; placing it in the `c:\windows\system32\wbem` directory. I’m going to cancel my initial access shell and reuse port 135 because I’m fond of it, but there do not appear to be any outgoing firewall rules to prevent you from just using another port and having three shells on the box. It is probably advisable to do it that way.
+
+
+
+
 --- 
 
 # Useful Links
